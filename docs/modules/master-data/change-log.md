@@ -25,3 +25,9 @@
 - Added an Offices sidebar link for users with master-data permission.
 - Shared the permission result with the Inertia frontend.
 - Added tests for administrator, regular-user and guest permission values.
+
+## Office audit history
+
+- Added audit events for office creation and updates.
+- Recorded office changes and audit events in one transaction.
+- Added tests for audit records and unauthorised creation.

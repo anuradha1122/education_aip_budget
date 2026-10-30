@@ -43,7 +43,7 @@ access, creation, duplicate validation and deactivation.
 
 ## Remaining work
 
-- Add audit history.
+- Add an authorised screen for viewing audit history.
 - Protect and test historical references as related records are added.
 - Implement applicable Excel import/export and PDF listing.
 - Confirm and enter official office names and codes.

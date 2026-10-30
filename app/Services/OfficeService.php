@@ -3,13 +3,15 @@
 namespace App\Services;
 
 use App\Models\Office;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
 class OfficeService
 {
     /**
-     * Create an office after validating its details.
+     * Create an office and record its audit event.
      *
      * The caller is responsible for authorising the operation.
      */
@@ -17,11 +19,22 @@ class OfficeService
     {
         $validated = $this->validate($data);
 
-        return Office::create($validated);
+        return DB::transaction(function () use ($validated) {
+            $office = Office::create($validated);
+
+            $this->recordAudit(
+                $office,
+                'created',
+                null,
+                $this->auditValues($office)
+            );
+
+            return $office;
+        });
     }
 
     /**
-     * Update an office after validating its details.
+     * Update an office and record changes.
      *
      * The caller is responsible for authorising the operation.
      */
@@ -29,9 +42,63 @@ class OfficeService
     {
         $validated = $this->validate($data, $office);
 
-        $office->update($validated);
+        return DB::transaction(function () use ($office, $validated) {
+            $before = $this->auditValues($office);
 
-        return $office->fresh();
+            $office->fill($validated);
+
+            if (! $office->isDirty()) {
+                return $office->fresh();
+            }
+
+            $office->save();
+
+            $this->recordAudit(
+                $office,
+                'updated',
+                $before,
+                $this->auditValues($office)
+            );
+
+            return $office->fresh();
+        });
+    }
+
+    /**
+     * Select the office values recorded in the audit history.
+     */
+    private function auditValues(Office $office): array
+    {
+        return [
+            'code' => $office->code,
+            'name' => $office->name,
+            'type' => $office->type,
+            'is_active' => (bool) $office->is_active,
+        ];
+    }
+
+    /**
+     * Store an audit event in the same transaction as the office change.
+     */
+    private function recordAudit(
+        Office $office,
+        string $action,
+        ?array $oldValues,
+        array $newValues
+    ): void {
+        DB::table('office_audit_events')->insert([
+            'office_id' => $office->id,
+            'actor_id' => Auth::id(),
+            'action' => $action,
+            'old_values' => $oldValues === null
+                ? null
+                : json_encode($oldValues, JSON_THROW_ON_ERROR),
+            'new_values' => json_encode(
+                $newValues,
+                JSON_THROW_ON_ERROR
+            ),
+            'created_at' => now(),
+        ]);
     }
 
     /**
