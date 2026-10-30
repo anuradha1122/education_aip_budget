@@ -18,31 +18,69 @@ class FirstUserSeeder extends Seeder
             return;
         }
 
-        $name = trim((string) $this->command->ask('Enter your name'));
-        $email = strtolower(trim((string) $this->command->ask('Enter your email')));
-        $password = $this->command->secret('Enter a password');
-        $confirmation = $this->command->secret('Confirm the password');
+        if (User::where('is_admin', true)->exists()) {
+            $this->command->error(
+                'An administrator already exists. No account was created.'
+            );
 
-        if ($name === '' || ! filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $this->command->error('Please provide a name and a valid email address.');
+            return;
+        }
+
+        $name = trim((string) $this->command->ask(
+            'Enter the administrator name'
+        ));
+
+        $email = strtolower(trim((string) $this->command->ask(
+            'Enter the administrator email'
+        )));
+
+        $password = $this->command->secret(
+            'Enter a password'
+        );
+
+        $confirmation = $this->command->secret(
+            'Confirm the password'
+        );
+
+        if ($name === '' || mb_strlen($name) > 255) {
+            $this->command->error(
+                'Please provide a name with no more than 255 characters.'
+            );
+
+            return;
+        }
+
+        if (
+            strlen($email) > 255
+            || ! filter_var($email, FILTER_VALIDATE_EMAIL)
+        ) {
+            $this->command->error(
+                'Please provide a valid email address.'
+            );
 
             return;
         }
 
         if (! is_string($password) || strlen($password) < 8) {
-            $this->command->error('The password must contain at least 8 characters.');
+            $this->command->error(
+                'The password must contain at least 8 characters.'
+            );
 
             return;
         }
 
         if ($password !== $confirmation) {
-            $this->command->error('The passwords do not match.');
+            $this->command->error(
+                'The passwords do not match.'
+            );
 
             return;
         }
 
         if (User::where('email', $email)->exists()) {
-            $this->command->error('A user with this email already exists.');
+            $this->command->error(
+                'A user with this email already exists. No changes were made.'
+            );
 
             return;
         }
@@ -51,8 +89,11 @@ class FirstUserSeeder extends Seeder
         $user->name = $name;
         $user->email = $email;
         $user->password = Hash::make($password);
+        $user->is_admin = true;
         $user->save();
 
-        $this->command->info("User created successfully: {$user->email}");
+        $this->command->info(
+            "Administrator created successfully: {$user->email}"
+        );
     }
 }
