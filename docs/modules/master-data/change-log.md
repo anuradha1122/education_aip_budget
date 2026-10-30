@@ -19,3 +19,9 @@
 - Added office creation, editing, search and deactivation.
 - Added feature tests for permissions and office operations.
 - Documented outstanding navigation, audit and output work.
+
+## Office navigation
+
+- Added an Offices sidebar link for users with master-data permission.
+- Shared the permission result with the Inertia frontend.
+- Added tests for administrator, regular-user and guest permission values.

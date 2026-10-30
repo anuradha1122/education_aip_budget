@@ -25,6 +25,13 @@ must be unique.
 Set an office to inactive instead of deleting it. The current
 implementation does not provide an office deletion route.
 
+## Navigation
+
+The Offices sidebar link is shown when the authenticated user has the
+manage-master-data permission.
+
+The office routes also enforce this permission on the server.
+
 ## Tests
 
     php artisan test --filter=OfficeManagementTest
@@ -36,7 +43,6 @@ access, creation, duplicate validation and deactivation.
 
 ## Remaining work
 
-- Add permission-aware navigation.
 - Add audit history.
 - Protect and test historical references as related records are added.
 - Implement applicable Excel import/export and PDF listing.

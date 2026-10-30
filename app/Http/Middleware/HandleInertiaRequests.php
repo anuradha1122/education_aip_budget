@@ -45,6 +45,10 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
+
+            'permissions' => [
+                'manage_master_data' => $request->user()?->can('manage-master-data') ?? false,
+            ],
         ]);
     }
 }
