@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use App\Http\Controllers\OfficeController;
 
 Route::get('/', function () {
     return Inertia::render('welcome');
@@ -11,6 +12,20 @@ Route::middleware(['auth'])->group(function () {
     Route::get('dashboard', function () {
         return Inertia::render('dashboard');
     })->name('dashboard');
+});
+
+Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
+    Route::get('/offices', [OfficeController::class, 'index'])
+        ->name('offices.index');
+
+    Route::get('/offices/{office}/edit', [OfficeController::class, 'edit'])
+        ->name('offices.edit');
+
+    Route::post('/offices', [OfficeController::class, 'store'])
+        ->name('offices.store');
+
+    Route::put('/offices/{office}', [OfficeController::class, 'update'])
+        ->name('offices.update');
 });
 
 require __DIR__.'/settings.php';

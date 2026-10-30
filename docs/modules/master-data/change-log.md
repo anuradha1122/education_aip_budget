@@ -12,3 +12,10 @@
 - Added service tests for duplicates, office type and deactivation.
 - Updated registration tests to verify public registration is disabled.
 - Documented outstanding authorisation and output work.
+
+## Office management
+
+- Added administrator-protected office routes and page.
+- Added office creation, editing, search and deactivation.
+- Added feature tests for permissions and office operations.
+- Documented outstanding navigation, audit and output work.
