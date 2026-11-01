@@ -96,6 +96,13 @@ function OfficePage({
                     >
                         Download office list (Excel)
                     </a>
+
+                    <a
+                        href="/offices/export/pdf"
+                        className="mt-3 inline-block text-sm underline"
+                    >
+                        Download office list (PDF)
+                    </a>
                 </div>
 
                 <section className="rounded-lg border p-4">

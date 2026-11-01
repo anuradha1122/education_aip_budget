@@ -7,6 +7,8 @@ use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\Response;
 
 class OfficeExportController extends Controller
 {
@@ -74,5 +76,19 @@ class OfficeExportController extends Controller
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'Cache-Control' => 'private, no-store',
         ]);
+    }
+
+    public function pdf(): Response
+    {
+        $offices = Office::query()
+            ->orderBy('code')
+            ->get(['code', 'name', 'type', 'is_active']);
+
+        return Pdf::loadView('pdf.offices', [
+            'offices' => $offices,
+        ])
+            ->setPaper('a4')
+            ->download('offices.pdf')
+            ->header('Cache-Control', 'private, no-store');
     }
 }
