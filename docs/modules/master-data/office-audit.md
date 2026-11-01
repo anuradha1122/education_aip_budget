@@ -25,8 +25,14 @@ service for office changes or otherwise provide equivalent audit handling.
 
 ## Access
 
-An audit viewing screen is not implemented yet. Direct database access
-must be restricted to authorised administrators.
+## Access
+
+Authenticated users with the manage-master-data permission can open
+the office audit history at /office-audit.
+
+The page displays recorded events in pages of 20. Direct database access
+must remain restricted to authorised administrators.
+
 
 ## Tests
 
@@ -36,6 +42,5 @@ must be restricted to authorised administrators.
 
 ## Remaining work
 
-- Provide an authorised audit-history screen.
 - Define retention, protection and export requirements.
 - Extend audit coverage to other master data and system actions.

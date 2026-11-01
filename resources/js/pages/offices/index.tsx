@@ -86,6 +86,9 @@ function OfficePage({
                     <p className="mt-1 text-sm text-muted-foreground">
                         Create, update and deactivate offices.
                     </p>
+                    <Link href="/office-audit" className="mt-3 inline-block text-sm underline">
+                        View office audit history
+                    </Link>
                 </div>
 
                 <section className="rounded-lg border p-4">

@@ -31,3 +31,9 @@
 - Added audit events for office creation and updates.
 - Recorded office changes and audit events in one transaction.
 - Added tests for audit records and unauthorised creation.
+
+## Office audit history screen
+
+- Added an administrator-protected audit history page.
+- Added pagination and before-and-after values.
+- Added tests for administrator, regular-user and guest access.
