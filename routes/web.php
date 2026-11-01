@@ -40,6 +40,9 @@ Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
     Route::get('/offices/export/pdf', [OfficeExportController::class, 'pdf'])
         ->name('offices.export.pdf');
 
+    Route::get('/offices/import/template', [OfficeExportController::class, 'importTemplate'])
+        ->name('offices.import.template');
+
 });
 
 require __DIR__.'/settings.php';

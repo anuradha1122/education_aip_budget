@@ -91,4 +91,47 @@ class OfficeExportController extends Controller
             ->download('offices.pdf')
             ->header('Cache-Control', 'private, no-store');
     }
+
+    public function importTemplate(): StreamedResponse
+    {
+        return response()->streamDownload(function (): void {
+            $spreadsheet = new Spreadsheet();
+
+            try {
+                $sheet = $spreadsheet->getActiveSheet();
+                $sheet->setTitle('Offices');
+
+                $headers = [
+                    'A1' => 'Office code',
+                    'B1' => 'Office name',
+                    'C1' => 'Office type',
+                    'D1' => 'Status',
+                ];
+
+                foreach ($headers as $cell => $value) {
+                    $sheet->setCellValueExplicit(
+                        $cell,
+                        $value,
+                        DataType::TYPE_STRING
+                    );
+                }
+
+                $sheet->getStyle('A1:D1')->getFont()->setBold(true);
+                $sheet->freezePane('A2');
+
+                $sheet->getColumnDimension('A')->setWidth(22);
+                $sheet->getColumnDimension('B')->setWidth(50);
+                $sheet->getColumnDimension('C')->setWidth(20);
+                $sheet->getColumnDimension('D')->setWidth(15);
+
+                $writer = new Xlsx($spreadsheet);
+                $writer->save('php://output');
+            } finally {
+                $spreadsheet->disconnectWorksheets();
+            }
+        }, 'office-import-template.xlsx', [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Cache-Control' => 'private, no-store',
+        ]);
+    }
 }

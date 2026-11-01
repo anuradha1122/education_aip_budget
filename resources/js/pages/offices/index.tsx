@@ -98,7 +98,12 @@ function OfficePage({
                         <a href="/offices/export/pdf" className="underline">
                             Download office list (PDF)
                         </a>
+
+                        <a href="/offices/import/template" className="underline">
+                            Download office import template
+                        </a>
                     </div>
+
                 </div>
 
                 <section className="rounded-lg border p-4">

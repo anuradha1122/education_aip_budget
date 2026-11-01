@@ -43,3 +43,9 @@
 - Added an administrator-protected Excel office list.
 - Included active and inactive offices.
 - Added access and workbook-content tests.
+
+## Office import template
+
+- Added an administrator-protected blank Excel template.
+- Added access and template-content tests.
+- Documented the remaining import work.
