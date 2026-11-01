@@ -89,6 +89,13 @@ function OfficePage({
                     <Link href="/office-audit" className="mt-3 inline-block text-sm underline">
                         View office audit history
                     </Link>
+
+                    <a
+                        href="/offices/export/excel"
+                        className="mt-3 inline-block text-sm underline"
+                    >
+                        Download office list (Excel)
+                    </a>
                 </div>
 
                 <section className="rounded-lg border p-4">

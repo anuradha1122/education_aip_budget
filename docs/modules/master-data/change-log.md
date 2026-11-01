@@ -37,3 +37,9 @@
 - Added an administrator-protected audit history page.
 - Added pagination and before-and-after values.
 - Added tests for administrator, regular-user and guest access.
+
+## Office Excel export
+
+- Added an administrator-protected Excel office list.
+- Included active and inactive offices.
+- Added access and workbook-content tests.

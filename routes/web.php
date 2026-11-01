@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\OfficeController;
 use App\Http\Controllers\OfficeAuditController;
+use App\Http\Controllers\OfficeExportController;
 
 Route::get('/', function () {
     return Inertia::render('welcome');
@@ -32,6 +33,9 @@ Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
 
     Route::put('/offices/{office}', [OfficeController::class, 'update'])
         ->name('offices.update');
+
+    Route::get('/offices/export/excel', [OfficeExportController::class, 'excel'])
+        ->name('offices.export.excel');
 
 });
 
