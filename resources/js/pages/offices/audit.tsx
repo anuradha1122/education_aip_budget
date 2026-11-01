@@ -131,8 +131,8 @@ export default function OfficeAudit({ events }: Props) {
                 >
                     {events.links.map((link, index) => {
                         const label = link.label
-                            .replace('&laquo;', 'Previous')
-                            .replace('&raquo;', 'Next');
+                            .replace(/&laquo;|&raquo;/g, '')
+                            .trim();
 
                         return link.url ? (
                             <Link
