@@ -86,23 +86,19 @@ function OfficePage({
                     <p className="mt-1 text-sm text-muted-foreground">
                         Create, update and deactivate offices.
                     </p>
-                    <Link href="/office-audit" className="mt-3 inline-block text-sm underline">
-                        View office audit history
-                    </Link>
+                    <div className="mt-3 flex flex-wrap gap-x-6 gap-y-2 text-sm">
+                        <Link href="/office-audit" className="underline">
+                            View office audit history
+                        </Link>
 
-                    <a
-                        href="/offices/export/excel"
-                        className="mt-3 inline-block text-sm underline"
-                    >
-                        Download office list (Excel)
-                    </a>
+                        <a href="/offices/export/excel" className="underline">
+                            Download office list (Excel)
+                        </a>
 
-                    <a
-                        href="/offices/export/pdf"
-                        className="mt-3 inline-block text-sm underline"
-                    >
-                        Download office list (PDF)
-                    </a>
+                        <a href="/offices/export/pdf" className="underline">
+                            Download office list (PDF)
+                        </a>
+                    </div>
                 </div>
 
                 <section className="rounded-lg border p-4">
