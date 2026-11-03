@@ -5,6 +5,7 @@ use Inertia\Inertia;
 use App\Http\Controllers\OfficeController;
 use App\Http\Controllers\OfficeAuditController;
 use App\Http\Controllers\OfficeExportController;
+use App\Http\Controllers\OfficeImportController;
 
 Route::get('/', function () {
     return Inertia::render('welcome');
@@ -42,6 +43,12 @@ Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
 
     Route::get('/offices/import/template', [OfficeExportController::class, 'importTemplate'])
         ->name('offices.import.template');
+
+    Route::get('/offices/import', [OfficeImportController::class, 'index'])
+        ->name('offices.import.index');
+
+    Route::post('/offices/import/validate', [OfficeImportController::class, 'validateFile'])
+        ->name('offices.import.validate');
 
 });
 

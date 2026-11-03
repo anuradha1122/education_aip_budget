@@ -2,7 +2,15 @@
 
 ## Current implementation
 
-An administrator can download a blank Excel import template.
+An administrator can download the template and upload a completed XLSX
+file for validation.
+
+Validation reports row-level errors for required fields, office type,
+status and duplicate codes. This stage does not save office records.
+
+The workbook must have one worksheet, the four template headings, no
+more than 500 data rows and a maximum file size of 2 MB. Formulas are
+not accepted in import data.
 
 ## Template columns
 
@@ -24,8 +32,5 @@ permission.
 
 ## Not yet implemented
 
-- Uploading and validating an Excel file.
-- Reporting row-level errors.
-- Detecting duplicate codes within the file and in the database.
 - Saving valid offices in a transaction.
 - Recording an audit event for each imported office.

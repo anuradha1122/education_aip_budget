@@ -102,6 +102,10 @@ function OfficePage({
                         <a href="/offices/import/template" className="underline">
                             Download office import template
                         </a>
+
+                        <Link href="/offices/import" className="underline">
+                            Validate office import
+                        </Link>
                     </div>
 
                 </div>

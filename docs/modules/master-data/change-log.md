@@ -49,3 +49,9 @@
 - Added an administrator-protected blank Excel template.
 - Added access and template-content tests.
 - Documented the remaining import work.
+
+## Office import validation
+
+- Added administrator-protected XLSX upload and validation.
+- Added row-level duplicate and field checks.
+- Added tests confirming that validation does not save offices.
