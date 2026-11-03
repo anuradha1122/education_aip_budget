@@ -37,6 +37,10 @@ class OfficeImportController extends Controller
 
     public function validateFile(Request $request): Response|RedirectResponse
     {
+        if ($request->attributes->get('save_offices') !== true) {
+            $request->session()->forget('office_import_reviewed_hash');
+        }
+
         $request->validate([
             'file' => [
                 'required',
@@ -47,6 +51,22 @@ class OfficeImportController extends Controller
         ]);
 
         $path = $request->file('file')->getRealPath();
+
+        $fileHash = hash_file('sha256', $path);
+
+        if ($request->attributes->get('save_offices') === true) {
+            $reviewedHash = $request->session()->get('office_import_reviewed_hash');
+
+            if (
+                ! is_string($reviewedHash)
+                || ! is_string($fileHash)
+                || ! hash_equals($reviewedHash, $fileHash)
+            ) {
+                throw ValidationException::withMessages([
+                    'file' => 'The selected file has changed or has not been reviewed. Validate it again before importing.',
+                ]);
+            }
+        }
 
         try {
             $reader = IOFactory::createReader('Xlsx');
@@ -235,9 +255,15 @@ class OfficeImportController extends Controller
                     }
                 });
 
+                $request->session()->forget('office_import_reviewed_hash');
+
                 return redirect()
                     ->route('offices.import.index')
                     ->with('import_success', count($rows).' offices imported successfully.');
+            }
+
+            if ($invalidCount === 0 && is_string($fileHash)) {
+                $request->session()->put('office_import_reviewed_hash', $fileHash);
             }
 
             return Inertia::render('offices/import', [

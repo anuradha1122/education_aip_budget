@@ -45,24 +45,24 @@ export default function OfficeImport({ result, importMessage }: Props) {
         post('/offices/import/validate', {
             forceFormData: true,
         });
+    }
 
-        function importOffices() {
-            if (!data.file) {
-                return;
-            }
-
-            const confirmed = window.confirm(
-                'Import the selected workbook? The file will be validated again before saving.',
-            );
-
-            if (!confirmed) {
-                return;
-            }
-
-            post('/offices/import', {
-                forceFormData: true,
-            });
+    function importOffices() {
+        if (!data.file) {
+            return;
         }
+
+        const confirmed = window.confirm(
+            'Import the selected workbook? The file will be validated again before saving.',
+        );
+
+        if (!confirmed) {
+            return;
+        }
+
+        post('/offices/import', {
+            forceFormData: true,
+        });
     }
 
     return (

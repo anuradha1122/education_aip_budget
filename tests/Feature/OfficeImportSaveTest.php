@@ -72,6 +72,12 @@ class OfficeImportSaveTest extends TestCase
 
         try {
             $this->actingAs($admin)
+                ->post('/offices/import/validate', [
+                    'file' => $file,
+                ])
+                ->assertOk();
+
+            $this->actingAs($admin)
                 ->post('/offices/import', [
                     'file' => $file,
                 ])
@@ -105,7 +111,42 @@ class OfficeImportSaveTest extends TestCase
         }
     }
 
-    public function test_no_offices_are_saved_when_any_row_is_invalid(): void
+    public function test_a_different_file_cannot_be_imported_after_preview(): void
+    {
+        $admin = $this->administrator();
+
+        $reviewedFile = $this->workbook([
+            ['REVIEW-01', 'Reviewed Office', 'zonal', 'Active'],
+        ]);
+
+        $differentFile = $this->workbook([
+            ['OTHER-01', 'Different Office', 'zonal', 'Active'],
+        ]);
+
+        try {
+            $this->actingAs($admin)
+                ->post('/offices/import/validate', [
+                    'file' => $reviewedFile,
+                ])
+                ->assertOk();
+
+            $this->actingAs($admin)
+                ->from('/offices/import')
+                ->post('/offices/import', [
+                    'file' => $differentFile,
+                ])
+                ->assertRedirect()
+                ->assertSessionHasErrors('file');
+
+            $this->assertDatabaseCount('offices', 0);
+            $this->assertDatabaseCount('office_audit_events', 0);
+        } finally {
+            @unlink($reviewedFile->getPathname());
+            @unlink($differentFile->getPathname());
+        }
+    }
+
+    public function test_an_unreviewed_file_with_an_invalid_row_cannot_be_imported(): void
     {
         $file = $this->workbook([
             ['ZONE-01', 'Valid Office', 'zonal', 'Active'],
@@ -117,7 +158,8 @@ class OfficeImportSaveTest extends TestCase
                 ->post('/offices/import', [
                     'file' => $file,
                 ])
-                ->assertOk();
+                ->assertRedirect()
+                ->assertSessionHasErrors('file');
 
             $this->assertDatabaseCount('offices', 0);
             $this->assertDatabaseCount('office_audit_events', 0);
@@ -126,7 +168,7 @@ class OfficeImportSaveTest extends TestCase
         }
     }
 
-    public function test_no_offices_are_saved_when_a_code_already_exists(): void
+    public function test_an_unreviewed_file_with_an_existing_code_cannot_be_imported(): void
     {
         Office::create([
             'code' => 'EXISTING',
@@ -145,12 +187,69 @@ class OfficeImportSaveTest extends TestCase
                 ->post('/offices/import', [
                     'file' => $file,
                 ])
-                ->assertOk();
+                ->assertRedirect()
+                ->assertSessionHasErrors('file');
 
             $this->assertDatabaseCount('offices', 1);
+
             $this->assertDatabaseMissing('offices', [
                 'code' => 'NEW-01',
             ]);
+        } finally {
+            @unlink($file->getPathname());
+        }
+    }
+
+    public function test_no_offices_are_imported_if_a_code_is_added_after_preview(): void
+    {
+        $admin = $this->administrator();
+
+        $file = $this->workbook([
+            ['NEW-01', 'New Office', 'zonal', 'Active'],
+            ['TAKEN-01', 'Another Office', 'zonal', 'Active'],
+        ]);
+
+        try {
+            // The file is valid when it is reviewed.
+            $this->actingAs($admin)
+                ->post('/offices/import/validate', [
+                    'file' => $file,
+                ])
+                ->assertOk()
+                ->assertSessionHas('office_import_reviewed_hash');
+
+            // Another office is created before the import is submitted.
+            Office::create([
+                'code' => 'TAKEN-01',
+                'name' => 'Office Added After Preview',
+                'type' => 'zonal',
+                'is_active' => true,
+            ]);
+
+            $auditCountBeforeImport = DB::table('office_audit_events')->count();
+
+            $this->actingAs($admin)
+                ->post('/offices/import', [
+                    'file' => $file,
+                ])
+                ->assertSessionMissing('import_success');
+
+            // Neither row from the workbook should be imported.
+            $this->assertDatabaseCount('offices', 1);
+
+            $this->assertDatabaseMissing('offices', [
+                'code' => 'NEW-01',
+            ]);
+
+            $this->assertDatabaseHas('offices', [
+                'code' => 'TAKEN-01',
+                'name' => 'Office Added After Preview',
+            ]);
+
+            $this->assertSame(
+                $auditCountBeforeImport,
+                DB::table('office_audit_events')->count()
+            );
         } finally {
             @unlink($file->getPathname());
         }
