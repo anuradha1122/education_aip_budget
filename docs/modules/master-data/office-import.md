@@ -2,15 +2,16 @@
 
 ## Current implementation
 
-An administrator can download the template and upload a completed XLSX
-file for validation.
+An administrator can download the template, validate a workbook and
+import valid office rows.
 
-Validation reports row-level errors for required fields, office type,
-status and duplicate codes. This stage does not save office records.
+The import request reads and validates the submitted workbook again.
+If any row has an error, no offices from that file are saved.
 
-The workbook must have one worksheet, the four template headings, no
-more than 500 data rows and a maximum file size of 2 MB. Formulas are
-not accepted in import data.
+The entire batch is saved in one database transaction. Each imported
+office is created through OfficeService and receives an audit event.
+
+Existing offices are not updated by the import.
 
 ## Template columns
 
@@ -30,7 +31,3 @@ permission.
     php artisan test
     npm run build
 
-## Not yet implemented
-
-- Saving valid offices in a transaction.
-- Recording an audit event for each imported office.

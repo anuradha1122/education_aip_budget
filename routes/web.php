@@ -50,6 +50,9 @@ Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
     Route::post('/offices/import/validate', [OfficeImportController::class, 'validateFile'])
         ->name('offices.import.validate');
 
+    Route::post('/offices/import', [OfficeImportController::class, 'store'])
+        ->name('offices.import.store');
+
 });
 
 require __DIR__.'/settings.php';

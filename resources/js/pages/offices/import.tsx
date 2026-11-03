@@ -20,6 +20,7 @@ type ImportResult = {
 
 type Props = {
     result: ImportResult | null;
+    importMessage: string | null;
 };
 
 type UploadForm = {
@@ -32,7 +33,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Validate import', href: '/offices/import' },
 ];
 
-export default function OfficeImport({ result }: Props) {
+export default function OfficeImport({ result, importMessage }: Props) {
     const { data, setData, post, processing, errors } =
         useForm<UploadForm>({
             file: null,
@@ -44,6 +45,24 @@ export default function OfficeImport({ result }: Props) {
         post('/offices/import/validate', {
             forceFormData: true,
         });
+
+        function importOffices() {
+            if (!data.file) {
+                return;
+            }
+
+            const confirmed = window.confirm(
+                'Import the selected workbook? The file will be validated again before saving.',
+            );
+
+            if (!confirmed) {
+                return;
+            }
+
+            post('/offices/import', {
+                forceFormData: true,
+            });
+        }
     }
 
     return (
@@ -117,6 +136,15 @@ export default function OfficeImport({ result }: Props) {
                     </div>
                 </form>
 
+                {importMessage && (
+                    <p
+                        role="status"
+                        className="rounded-lg border p-4 text-sm"
+                    >
+                        {importMessage}
+                    </p>
+                )}
+
                 {result && (
                     <section className="rounded-lg border p-4">
                         <h2 className="text-lg font-semibold">
@@ -131,6 +159,24 @@ export default function OfficeImport({ result }: Props) {
                         <p className="mt-1 text-sm">
                             No offices have been saved.
                         </p>
+
+                        {result.invalid === 0 && (
+                            <div className="mt-4">
+                                <p className="mb-2 text-sm">
+                                    Review the rows above before importing. If the file selection
+                                    was cleared, select the same workbook again.
+                                </p>
+
+                                <button
+                                    type="button"
+                                    onClick={importOffices}
+                                    disabled={processing || !data.file}
+                                    className="rounded-md bg-primary px-4 py-2 text-primary-foreground disabled:opacity-50"
+                                >
+                                    Import offices
+                                </button>
+                            </div>
+                        )}
 
                         <div className="mt-4 overflow-x-auto">
                             <table className="w-full text-left text-sm">

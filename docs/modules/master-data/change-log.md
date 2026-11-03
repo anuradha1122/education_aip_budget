@@ -55,3 +55,10 @@
 - Added administrator-protected XLSX upload and validation.
 - Added row-level duplicate and field checks.
 - Added tests confirming that validation does not save offices.
+
+## Office import saving
+
+- Added administrator-protected saving of valid office workbooks.
+- Revalidated submitted data before saving.
+- Saved each batch and its audit events in one transaction.
+- Added import access and all-or-nothing tests.

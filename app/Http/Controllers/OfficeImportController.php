@@ -12,6 +12,9 @@ use Inertia\Response;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Reader\Exception as ReaderException;
+use App\Services\OfficeService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
 
 class OfficeImportController extends Controller
 {
@@ -28,10 +31,11 @@ class OfficeImportController extends Controller
     {
         return Inertia::render('offices/import', [
             'result' => null,
+            'importMessage' => session('import_success'),
         ]);
     }
 
-    public function validateFile(Request $request): Response
+    public function validateFile(Request $request): Response|RedirectResponse
     {
         $request->validate([
             'file' => [
@@ -206,15 +210,53 @@ class OfficeImportController extends Controller
                 fn ($row) => count($row['errors']) > 0
             ));
 
+            if ($request->attributes->get('save_offices') === true) {
+                if ($invalidCount > 0) {
+                    return Inertia::render('offices/import', [
+                        'result' => [
+                            'rows' => $rows,
+                            'total' => count($rows),
+                            'invalid' => $invalidCount,
+                        ],
+                        'importMessage' => 'No offices were saved. Correct the errors and try again.',
+                    ]);
+                }
+
+                $officeService = app(OfficeService::class);
+
+                DB::transaction(function () use ($rows, $officeService): void {
+                    foreach ($rows as $row) {
+                        $officeService->create([
+                            'code' => $row['code'],
+                            'name' => $row['name'],
+                            'type' => $row['type'],
+                            'is_active' => $row['status'] === 'active',
+                        ]);
+                    }
+                });
+
+                return redirect()
+                    ->route('offices.import.index')
+                    ->with('import_success', count($rows).' offices imported successfully.');
+            }
+
             return Inertia::render('offices/import', [
                 'result' => [
                     'rows' => $rows,
                     'total' => count($rows),
                     'invalid' => $invalidCount,
                 ],
+                'importMessage' => null,
             ]);
         } finally {
             $spreadsheet->disconnectWorksheets();
         }
+    }
+
+    public function store(Request $request): Response|RedirectResponse
+    {
+        $request->attributes->set('save_offices', true);
+
+        return $this->validateFile($request);
     }
 }
