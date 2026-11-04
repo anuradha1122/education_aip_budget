@@ -12,7 +12,13 @@ import {
 } from '@/components/ui/sidebar';
 import { type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, Building2, Folder, LayoutGrid } from 'lucide-react';
+import {
+    BookOpen,
+    Building2,
+    Folder,
+    Landmark,
+    LayoutGrid,
+} from 'lucide-react';
 import AppLogo from './app-logo';
 
 const footerNavItems: NavItem[] = [
@@ -40,11 +46,18 @@ export function AppSidebar() {
     ];
 
     if (permissions?.manage_master_data) {
-        mainNavItems.push({
-            title: 'Offices',
-            url: '/offices',
-            icon: Building2,
-        });
+        mainNavItems.push(
+            {
+                title: 'Offices',
+                url: '/offices',
+                icon: Building2,
+            },
+            {
+                title: 'Funds',
+                url: '/funds',
+                icon: Landmark,
+            },
+        );
     }
 
     return (
