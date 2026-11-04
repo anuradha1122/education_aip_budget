@@ -1,11 +1,12 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
-use App\Http\Controllers\OfficeController;
+use App\Http\Controllers\FundController;
 use App\Http\Controllers\OfficeAuditController;
+use App\Http\Controllers\OfficeController;
 use App\Http\Controllers\OfficeExportController;
 use App\Http\Controllers\OfficeImportController;
+use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
 
 Route::get('/', function () {
     return Inertia::render('welcome');
@@ -15,13 +16,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('dashboard', function () {
         return Inertia::render('dashboard');
     })->name('dashboard');
-
 });
 
 Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
-
     Route::get('/office-audit', [OfficeAuditController::class, 'index'])
-    ->name('offices.audit');
+        ->name('offices.audit');
 
     Route::get('/offices', [OfficeController::class, 'index'])
         ->name('offices.index');
@@ -53,6 +52,17 @@ Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
     Route::post('/offices/import', [OfficeImportController::class, 'store'])
         ->name('offices.import.store');
 
+    Route::get('/funds', [FundController::class, 'index'])
+        ->name('funds.index');
+
+    Route::get('/funds/{fund}/edit', [FundController::class, 'edit'])
+        ->name('funds.edit');
+
+    Route::post('/funds', [FundController::class, 'store'])
+        ->name('funds.store');
+
+    Route::put('/funds/{fund}', [FundController::class, 'update'])
+        ->name('funds.update');
 });
 
 require __DIR__.'/settings.php';
