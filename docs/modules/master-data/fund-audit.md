@@ -24,6 +24,3 @@ An unavailable user is displayed as "Unavailable".
     php artisan test
     npm run build
 
-## Remaining work
-
-Add a link to this page from fund management.
