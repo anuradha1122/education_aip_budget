@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Download the fund list as an A4 PDF.
+Download the fund list as an A4 PDF from the Funds page.
 
 ## Access
 
@@ -17,8 +17,5 @@ Both active and inactive funds are included.
 ## Testing
 
     php artisan test --filter=FundPdfExportTest
-    php artisan test
-
-## Remaining work
-
-Add a PDF download link to the Funds page.
+    npx tsc --noEmit
+    npm run build

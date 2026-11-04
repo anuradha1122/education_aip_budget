@@ -85,6 +85,10 @@ function FundPage({ funds, search, editingFund }: Props) {
                         <a href="/funds/export/excel" className="underline">
                             Download fund list (Excel)
                         </a>
+
+                        <a href="/funds/export/pdf" className="underline">
+                            Download fund list (PDF)
+                        </a>
                     </div>
                 </div>
 
