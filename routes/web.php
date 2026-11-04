@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\FundAuditController;
 use App\Http\Controllers\FundController;
+use App\Http\Controllers\FundExportController;
 use App\Http\Controllers\OfficeAuditController;
 use App\Http\Controllers\OfficeController;
 use App\Http\Controllers\OfficeExportController;
@@ -55,6 +56,9 @@ Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
 
     Route::get('/fund-audit', [FundAuditController::class, 'index'])
         ->name('funds.audit');
+
+    Route::get('/funds/export/excel', [FundExportController::class, 'excel'])
+        ->name('funds.export.excel');
 
     Route::get('/funds', [FundController::class, 'index'])
         ->name('funds.index');
