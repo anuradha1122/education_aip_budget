@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Download the fund list as an XLSX workbook.
+Download the fund list as an XLSX workbook from the Funds page.
 
 ## Access
 
@@ -20,8 +20,5 @@ spreadsheet formulas.
 ## Testing
 
     php artisan test --filter=FundExportTest
-    php artisan test
-
-## Remaining work
-
-Add a download link to the Funds page.
+    npx tsc --noEmit
+    npm run build

@@ -77,12 +77,15 @@ function FundPage({ funds, search, editingFund }: Props) {
                         Create, update and deactivate funds.
                     </p>
 
-                    <Link
-                        href="/fund-audit"
-                        className="mt-3 inline-block text-sm underline"
-                    >
-                        View fund audit history
-                    </Link>
+                    <div className="mt-3 flex flex-wrap gap-x-6 gap-y-2 text-sm">
+                        <Link href="/fund-audit" className="underline">
+                            View fund audit history
+                        </Link>
+
+                        <a href="/funds/export/excel" className="underline">
+                            Download fund list (Excel)
+                        </a>
+                    </div>
                 </div>
 
                 <section className="rounded-lg border p-4">
