@@ -3,6 +3,7 @@
 use App\Http\Controllers\FundAuditController;
 use App\Http\Controllers\FundController;
 use App\Http\Controllers\FundExportController;
+use App\Http\Controllers\FundImportController;
 use App\Http\Controllers\FundImportTemplateController;
 use App\Http\Controllers\FundPdfExportController;
 use App\Http\Controllers\OfficeAuditController;
@@ -67,6 +68,12 @@ Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
 
     Route::get('/funds/import/template', [FundImportTemplateController::class, 'download'])
         ->name('funds.import.template');
+
+    Route::get('/funds/import', [FundImportController::class, 'index'])
+        ->name('funds.import.index');
+
+    Route::post('/funds/import/validate', [FundImportController::class, 'validateFile'])
+        ->name('funds.import.validate');
 
     Route::get('/funds', [FundController::class, 'index'])
         ->name('funds.index');
