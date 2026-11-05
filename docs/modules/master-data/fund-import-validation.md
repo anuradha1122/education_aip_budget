@@ -3,7 +3,8 @@
 ## Purpose
 
 Check a completed fund import workbook and display row-level results
-before saving.
+before saving. Administrators can open the validation screen from the
+Funds page.
 
 ## Access
 
@@ -31,11 +32,9 @@ Validation does not save funds or create audit events.
 ## Testing
 
     php artisan test --filter=FundImportValidationTest
-    php artisan test
     npx tsc --noEmit
     npm run build
 
 ## Remaining work
 
-- Add a link from the Funds page.
-- Implement reviewed-file import and audit recording.
+Implement reviewed-file import and audit recording.

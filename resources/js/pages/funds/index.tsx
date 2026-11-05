@@ -93,6 +93,10 @@ function FundPage({ funds, search, editingFund }: Props) {
                         <a href="/funds/import/template" className="underline">
                             Download fund import template
                         </a>
+
+                        <Link href="/funds/import" className="underline">
+                            Validate fund import
+                        </Link>
                     </div>
                 </div>
 
