@@ -2,7 +2,8 @@
 
 ## Purpose
 
-Provide a blank XLSX workbook for entering fund data.
+Provide a blank XLSX workbook for entering fund data. Administrators
+can download it from the Funds page.
 
 ## Access
 
@@ -16,15 +17,15 @@ The template download requires authentication and the
 3. Status
 
 The workbook contains headers only. Upload, validation and saving are
-not implemented in this step.
+not implemented yet.
 
 ## Testing
 
     php artisan test --filter=FundImportTemplateTest
-    php artisan test
+    npx tsc --noEmit
+    npm run build
 
 ## Remaining work
 
-- Add a template download link to the Funds page.
 - Implement workbook validation and review.
 - Implement authorised saving with audit history.
