@@ -94,6 +94,10 @@ function VotePage({ votes, search, editingVote }: Props) {
                         <a href="/votes/export/pdf" className="underline">
                             Download vote list (PDF)
                         </a>
+
+                        <a href="/votes/import/template" className="underline">
+                            Download vote import template
+                        </a>
                     </div>
                 </div>
 
