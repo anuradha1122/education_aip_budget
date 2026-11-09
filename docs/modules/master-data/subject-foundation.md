@@ -15,6 +15,7 @@ and needs confirmation from the department.
     php artisan test
     php artisan test --filter=SubjectServiceTest
     php artisan test --filter=SubjectAuditTest
+    php artisan test --filter=SubjectManagementTest
 
 ## Validation service
 
@@ -33,9 +34,22 @@ previous and new values, and timestamps.
 The subject change and audit event are saved in one database transaction.
 An unchanged subject does not create an update event.
 
+## Subject management
+
+Administrators can view, create, edit and deactivate subjects at
+/subjects. The routes require authentication and the
+manage-master-data permission.
+
+The selected office must exist. Inactive offices are currently shown
+and can be selected; the department's rule for inactive offices has
+not yet been established.
+
+Creation and updates through the page are recorded with the signed-in
+administrator in the subject audit table.
+
 ## Remaining work
 
 - Add an administrator-protected audit history page.
-- Add protected subject management.
+- Add a permission-aware sidebar link.
 - Define responsible officers and designations.
 - Implement office-level access restrictions.
