@@ -90,6 +90,10 @@ function VotePage({ votes, search, editingVote }: Props) {
                         <a href="/votes/export/excel" className="underline">
                             Download vote list (Excel)
                         </a>
+
+                        <a href="/votes/export/pdf" className="underline">
+                            Download vote list (PDF)
+                        </a>
                     </div>
                 </div>
 
