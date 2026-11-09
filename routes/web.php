@@ -75,6 +75,9 @@ Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
     Route::post('/funds/import/validate', [FundImportController::class, 'validateFile'])
         ->name('funds.import.validate');
 
+    Route::post('/funds/import', [FundImportController::class, 'store'])
+        ->name('funds.import.store');
+
     Route::get('/funds', [FundController::class, 'index'])
         ->name('funds.index');
 

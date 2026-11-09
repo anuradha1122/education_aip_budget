@@ -3,7 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Fund;
+use App\Services\FundService;
+use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -31,6 +35,99 @@ class FundImportController extends Controller
     }
 
     public function validateFile(Request $request): Response
+    {
+        // A new validation replaces the previous reviewed workbook.
+        $request->session()->forget('fund_import_review');
+
+        $result = $this->readWorkbook($request);
+
+        if ($result['invalid'] === 0) {
+            $request->session()->put('fund_import_review', [
+                'user_id' => $request->user()->id,
+                'hash' => hash_file(
+                    'sha256',
+                    $request->file('file')->getRealPath()
+                ),
+            ]);
+        }
+
+        return Inertia::render('funds/import', [
+            'result' => $result,
+        ]);
+    }
+
+    public function store(
+        Request $request,
+        FundService $fundService
+    ): RedirectResponse {
+        $request->validate([
+            'file' => [
+                'required',
+                'file',
+                'mimes:xlsx',
+                'max:2048',
+            ],
+        ]);
+
+        $review = $request->session()->get('fund_import_review');
+
+        $fileHash = hash_file(
+            'sha256',
+            $request->file('file')->getRealPath()
+        );
+
+        if (
+            ! is_array($review)
+            || ($review['user_id'] ?? null) !== $request->user()->id
+            || ! isset($review['hash'])
+            || ! hash_equals($review['hash'], $fileHash)
+        ) {
+            throw ValidationException::withMessages([
+                'file' => 'The selected file has changed or has not been reviewed. Validate it again before importing.',
+            ]);
+        }
+
+        // Check again because fund data may have changed since validation.
+        $result = $this->readWorkbook($request);
+
+        if ($result['invalid'] > 0) {
+            $request->session()->forget('fund_import_review');
+
+            throw ValidationException::withMessages([
+                'file' => 'The workbook is no longer valid. Validate it again to see the errors.',
+            ]);
+        }
+
+        try {
+            DB::transaction(function () use ($result, $fundService, $request) {
+                foreach ($result['rows'] as $row) {
+                    $fundService->create([
+                        'code' => $row['code'],
+                        'name' => $row['name'],
+                        'is_active' => $row['status'] === 'active',
+                    ], $request->user());
+                }
+            });
+        } catch (UniqueConstraintViolationException $exception) {
+            $request->session()->forget('fund_import_review');
+
+            throw ValidationException::withMessages([
+                'file' => 'A fund code already exists. Validate the workbook again.',
+            ]);
+        } catch (ValidationException $exception) {
+            $request->session()->forget('fund_import_review');
+
+            throw ValidationException::withMessages([
+                'file' => 'A fund could not be imported. Validate the workbook again.',
+            ]);
+        }
+
+        $request->session()->forget('fund_import_review');
+
+        return redirect()->route('funds.index');
+    }
+
+    private function readWorkbook(Request $request): array
     {
         $request->validate([
             'file' => [
@@ -191,13 +288,11 @@ class FundImportController extends Controller
                 fn ($row) => count($row['errors']) > 0
             ));
 
-            return Inertia::render('funds/import', [
-                'result' => [
-                    'rows' => $rows,
-                    'total' => count($rows),
-                    'invalid' => $invalidCount,
-                ],
-            ]);
+            return [
+                'rows' => $rows,
+                'total' => count($rows),
+                'invalid' => $invalidCount,
+            ];
         } finally {
             $spreadsheet->disconnectWorksheets();
         }

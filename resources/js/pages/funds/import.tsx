@@ -1,7 +1,7 @@
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, useForm } from '@inertiajs/react';
-import { type FormEvent } from 'react';
+import { type FormEvent, useState } from 'react';
 
 type ImportRow = {
     row: number;
@@ -36,11 +36,42 @@ export default function FundImport({ result }: Props) {
         file: null,
     });
 
+    const [reviewedFile, setReviewedFile] = useState<File | null>(null);
+
+    const importForm = useForm<UploadForm>({
+        file: null,
+    });
+
     function submit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
 
+        setReviewedFile(null);
+        importForm.clearErrors();
+
+        const fileToReview = data.file;
+
         post('/funds/import/validate', {
             forceFormData: true,
+            onSuccess: () => {
+                setReviewedFile(fileToReview);
+            },
+        });
+    }
+
+    function importFunds() {
+        if (!reviewedFile || reviewedFile !== data.file) {
+            return;
+        }
+
+        importForm.transform(() => ({
+            file: reviewedFile,
+        }));
+
+        importForm.post('/funds/import', {
+            forceFormData: true,
+            onError: () => {
+                setReviewedFile(null);
+            },
         });
     }
 
@@ -82,9 +113,12 @@ export default function FundImport({ result }: Props) {
                         id="file"
                         type="file"
                         accept=".xlsx"
-                        onChange={(event) =>
-                            setData('file', event.target.files?.[0] ?? null)
-                        }
+                        disabled={processing || importForm.processing}
+                        onChange={(event) => {
+                            setReviewedFile(null);
+                            importForm.clearErrors();
+                            setData('file', event.target.files?.[0] ?? null);
+                        }}
                         required
                     />
 
@@ -105,7 +139,11 @@ export default function FundImport({ result }: Props) {
                     <div>
                         <button
                             type="submit"
-                            disabled={processing || !data.file}
+                            disabled={
+                                processing ||
+                                importForm.processing ||
+                                !data.file
+                            }
                             className="rounded-md bg-primary px-4 py-2 text-primary-foreground disabled:opacity-50"
                         >
                             {processing ? 'Checking...' : 'Validate file'}
@@ -127,6 +165,35 @@ export default function FundImport({ result }: Props) {
                         <p className="mt-1 text-sm">
                             No funds have been saved.
                         </p>
+
+                        {importForm.errors.file && (
+                            <p className="mt-3 text-sm text-red-600">
+                                {importForm.errors.file}
+                            </p>
+                        )}
+
+                        {result.invalid === 0 &&
+                            reviewedFile !== null &&
+                            reviewedFile === data.file && (
+                                <div className="mt-4">
+                                    <p className="mb-2 text-sm">
+                                        Review the rows below before importing.
+                                    </p>
+
+                                    <button
+                                        type="button"
+                                        onClick={importFunds}
+                                        disabled={
+                                            importForm.processing || processing
+                                        }
+                                        className="rounded-md bg-primary px-4 py-2 text-primary-foreground disabled:opacity-50"
+                                    >
+                                        {importForm.processing
+                                            ? 'Importing...'
+                                            : 'Import funds'}
+                                    </button>
+                                </div>
+                            )}
 
                         <div className="mt-4 overflow-x-auto">
                             <table className="w-full text-left text-sm">
