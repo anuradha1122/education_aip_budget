@@ -67,6 +67,11 @@ export function AppSidebar() {
                 url: '/financial-years',
                 icon: Landmark,
             },
+            {
+                title: 'Subjects',
+                url: '/subjects',
+                icon: Landmark,
+            },
         );
     }
 

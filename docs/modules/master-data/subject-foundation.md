@@ -50,6 +50,5 @@ administrator in the subject audit table.
 ## Remaining work
 
 - Add an administrator-protected audit history page.
-- Add a permission-aware sidebar link.
 - Define responsible officers and designations.
 - Implement office-level access restrictions.
