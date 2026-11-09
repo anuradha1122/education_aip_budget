@@ -25,9 +25,24 @@ event are saved in one database transaction.
 
 Audit events for closing and reopening remain to be implemented.
 
+## Management page
+
+Administrators can view and create financial years at /financial-years.
+The routes require authentication and the manage-master-data permission.
+
+The page passes the signed-in user to the service so creation is recorded
+in the financial year audit table.
+
+## Management tests
+
+    php artisan test --filter=FinancialYearManagementTest
+    php artisan test
+    npx tsc --noEmit
+    npm run build
+
 ## Remaining work
 
-- Add protected routes and a management page.
+- Add a permission-aware sidebar link.
 - Record audit events for changes.
 - Implement controlled closing and reopening.
 - Enforce read-only restrictions on closed years when financial records
