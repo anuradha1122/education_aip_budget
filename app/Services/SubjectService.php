@@ -3,35 +3,80 @@
 namespace App\Services;
 
 use App\Models\Subject;
+use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
 class SubjectService
 {
-    public function create(array $data): Subject
+    public function create(array $data, ?User $actor = null): Subject
     {
-        return Subject::create($this->validatedData($data));
+        $validated = $this->validatedData($data);
+
+        return DB::transaction(function () use ($validated, $actor) {
+            $subject = Subject::create($validated);
+
+            $this->recordAudit(
+                $subject,
+                $actor,
+                'created',
+                null,
+                $this->values($subject)
+            );
+
+            return $subject;
+        });
     }
 
-    public function update(Subject $subject, array $data): Subject
-    {
-        $subject->update($this->validatedData($data, $subject));
+    public function update(
+        Subject $subject,
+        array $data,
+        ?User $actor = null
+    ): Subject {
+        return DB::transaction(function () use ($subject, $data, $actor) {
+            $subject = Subject::query()
+                ->lockForUpdate()
+                ->findOrFail($subject->id);
 
-        return $subject->refresh();
+            $validated = $this->validatedData($data, $subject);
+            $oldValues = $this->values($subject);
+
+            $subject->fill($validated);
+
+            if (! $subject->isDirty(['office_id', 'code', 'name', 'is_active'])) {
+                return $subject;
+            }
+
+            $subject->save();
+            $subject->refresh();
+
+            $this->recordAudit(
+                $subject,
+                $actor,
+                'updated',
+                $oldValues,
+                $this->values($subject)
+            );
+
+            return $subject;
+        });
     }
 
-    public function deactivate(Subject $subject): Subject
+    public function deactivate(Subject $subject, ?User $actor = null): Subject
     {
         return $this->update($subject, [
             'office_id' => $subject->office_id,
             'code' => $subject->code,
             'name' => $subject->name,
             'is_active' => false,
-        ]);
+        ], $actor);
     }
 
-    private function validatedData(array $data, ?Subject $subject = null): array
-    {
+    private function validatedData(
+        array $data,
+        ?Subject $subject = null
+    ): array {
         if (isset($data['code']) && is_string($data['code'])) {
             $data['code'] = mb_strtoupper(trim($data['code']));
         }
@@ -64,5 +109,35 @@ class SubjectService
                 'boolean',
             ],
         ])->validate();
+    }
+
+    private function values(Subject $subject): array
+    {
+        return [
+            'office_id' => $subject->office_id,
+            'code' => $subject->code,
+            'name' => $subject->name,
+            'is_active' => (bool) $subject->is_active,
+        ];
+    }
+
+    private function recordAudit(
+        Subject $subject,
+        ?User $actor,
+        string $action,
+        ?array $oldValues,
+        array $newValues
+    ): void {
+        DB::table('subject_audit_events')->insert([
+            'subject_id' => $subject->id,
+            'actor_id' => $actor?->id,
+            'action' => $action,
+            'old_values' => $oldValues === null
+                ? null
+                : json_encode($oldValues, JSON_THROW_ON_ERROR),
+            'new_values' => json_encode($newValues, JSON_THROW_ON_ERROR),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
     }
 }
