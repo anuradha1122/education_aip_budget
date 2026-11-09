@@ -125,6 +125,9 @@ Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
 
     Route::post('/votes/import/validate', [VoteImportController::class, 'validateFile'])
         ->name('votes.import.validate');
+
+    Route::post('/votes/import', [VoteImportController::class, 'store'])
+        ->name('votes.import.store');
 });
 
 require __DIR__.'/settings.php';

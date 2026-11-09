@@ -1,7 +1,7 @@
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, useForm } from '@inertiajs/react';
-import { type FormEvent } from 'react';
+import { type FormEvent, useState } from 'react';
 
 type ImportRow = {
     row: number;
@@ -36,11 +36,42 @@ export default function VoteImport({ result }: Props) {
         file: null,
     });
 
+    const [reviewedFile, setReviewedFile] = useState<File | null>(null);
+
+    const importForm = useForm<UploadForm>({
+        file: null,
+    });
+
     function submit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
 
+        setReviewedFile(null);
+        importForm.clearErrors();
+
+        const fileToReview = data.file;
+
         post('/votes/import/validate', {
             forceFormData: true,
+            onSuccess: () => {
+                setReviewedFile(fileToReview);
+            },
+        });
+    }
+
+    function importVotes() {
+        if (!reviewedFile || reviewedFile !== data.file) {
+            return;
+        }
+
+        importForm.transform(() => ({
+            file: reviewedFile,
+        }));
+
+        importForm.post('/votes/import', {
+            forceFormData: true,
+            onError: () => {
+                setReviewedFile(null);
+            },
         });
     }
 
@@ -82,9 +113,12 @@ export default function VoteImport({ result }: Props) {
                         id="file"
                         type="file"
                         accept=".xlsx"
-                        onChange={(event) =>
-                            setData('file', event.target.files?.[0] ?? null)
-                        }
+                        onChange={(event) => {
+                            setReviewedFile(null);
+                            importForm.clearErrors();
+                            setData('file', event.target.files?.[0] ?? null);
+                        }}
+                        disabled={processing || importForm.processing}
                         required
                     />
 
@@ -127,6 +161,31 @@ export default function VoteImport({ result }: Props) {
                         <p className="mt-1 text-sm">
                             No votes have been saved.
                         </p>
+
+                        {importForm.errors.file && (
+                            <p className="mt-3 text-sm text-red-600">
+                                {importForm.errors.file}
+                            </p>
+                        )}
+
+                        {result.invalid === 0 &&
+                            reviewedFile !== null &&
+                            reviewedFile === data.file && (
+                                <div className="mt-4">
+                                    <p className="mb-2 text-sm">
+                                        Review the rows below before importing.
+                                    </p>
+
+                                    <button
+                                        type="button"
+                                        onClick={importVotes}
+                                        disabled={importForm.processing || processing}
+                                        className="rounded-md bg-primary px-4 py-2 text-primary-foreground disabled:opacity-50"
+                                    >
+                                        {importForm.processing ? 'Importing...' : 'Import votes'}
+                                    </button>
+                                </div>
+                            )}
 
                         <div className="mt-4 overflow-x-auto">
                             <table className="w-full text-left text-sm">

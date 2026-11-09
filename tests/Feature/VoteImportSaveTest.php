@@ -1,0 +1,230 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Models\User;
+use App\Models\Vote;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use Tests\TestCase;
+
+class VoteImportSaveTest extends TestCase
+{
+    use RefreshDatabase;
+
+    private array $temporaryFiles = [];
+
+    protected function tearDown(): void
+    {
+        foreach ($this->temporaryFiles as $path) {
+            if (is_file($path)) {
+                unlink($path);
+            }
+        }
+
+        parent::tearDown();
+    }
+
+    public function test_a_guest_cannot_import_votes(): void
+    {
+        $this->post('/votes/import')
+            ->assertRedirect(route('login'));
+
+        $this->assertDatabaseCount('votes', 0);
+    }
+
+    public function test_a_regular_user_cannot_import_votes(): void
+    {
+        $user = User::factory()->create();
+
+        $file = $this->workbook([
+            ['NEW-01', 'New vote', 'active'],
+        ]);
+
+        $this->actingAs($user)
+            ->post('/votes/import', ['file' => $file])
+            ->assertForbidden();
+
+        $this->assertDatabaseCount('votes', 0);
+        $this->assertDatabaseCount('vote_audit_events', 0);
+    }
+
+    public function test_an_administrator_can_import_reviewed_votes_with_audit_events(): void
+    {
+        $admin = $this->administrator();
+
+        $file = $this->workbook([
+            ['vote-01', 'First vote', 'active'],
+            ['vote-02', 'Second vote', 'inactive'],
+        ]);
+
+        $this->actingAs($admin)
+            ->post('/votes/import/validate', ['file' => $file])
+            ->assertOk();
+
+        $this->actingAs($admin)
+            ->post('/votes/import', ['file' => $file])
+            ->assertRedirect(route('votes.index'))
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('votes', [
+            'code' => 'VOTE-01',
+            'description' => 'First vote',
+            'is_active' => true,
+        ]);
+
+        $this->assertDatabaseHas('votes', [
+            'code' => 'VOTE-02',
+            'description' => 'Second vote',
+            'is_active' => false,
+        ]);
+
+        $firstVote = Vote::query()->where('code', 'VOTE-01')->firstOrFail();
+        $secondVote = Vote::query()->where('code', 'VOTE-02')->firstOrFail();
+
+        $this->assertDatabaseCount('votes', 2);
+        $this->assertDatabaseCount('vote_audit_events', 2);
+
+        $this->assertDatabaseHas('vote_audit_events', [
+            'vote_id' => $firstVote->id,
+            'actor_id' => $admin->id,
+            'action' => 'created',
+        ]);
+
+        $this->assertDatabaseHas('vote_audit_events', [
+            'vote_id' => $secondVote->id,
+            'actor_id' => $admin->id,
+            'action' => 'created',
+        ]);
+    }
+
+    public function test_an_unreviewed_file_cannot_be_imported(): void
+    {
+        $file = $this->workbook([
+            ['NEW-01', 'New vote', 'active'],
+        ]);
+
+        $this->actingAs($this->administrator())
+            ->post('/votes/import', ['file' => $file])
+            ->assertSessionHasErrors('file');
+
+        $this->assertDatabaseCount('votes', 0);
+        $this->assertDatabaseCount('vote_audit_events', 0);
+    }
+
+    public function test_a_different_file_cannot_be_imported_after_review(): void
+    {
+        $admin = $this->administrator();
+
+        $reviewedFile = $this->workbook([
+            ['NEW-01', 'First vote', 'active'],
+        ]);
+
+        $differentFile = $this->workbook([
+            ['NEW-02', 'Second vote', 'active'],
+        ]);
+
+        $this->actingAs($admin)
+            ->post('/votes/import/validate', ['file' => $reviewedFile])
+            ->assertOk();
+
+        $this->actingAs($admin)
+            ->post('/votes/import', ['file' => $differentFile])
+            ->assertSessionHasErrors('file');
+
+        $this->assertDatabaseCount('votes', 0);
+        $this->assertDatabaseCount('vote_audit_events', 0);
+    }
+
+    public function test_an_invalid_workbook_cannot_be_imported(): void
+    {
+        $admin = $this->administrator();
+
+        $file = $this->workbook([
+            ['NEW-01', 'Valid vote', 'active'],
+            ['NEW-02', 'Invalid vote', 'unknown'],
+        ]);
+
+        $this->actingAs($admin)
+            ->post('/votes/import/validate', ['file' => $file])
+            ->assertOk();
+
+        $this->actingAs($admin)
+            ->post('/votes/import', ['file' => $file])
+            ->assertSessionHasErrors('file');
+
+        $this->assertDatabaseCount('votes', 0);
+        $this->assertDatabaseCount('vote_audit_events', 0);
+    }
+
+    public function test_no_votes_are_imported_if_a_code_is_added_after_review(): void
+    {
+        $admin = $this->administrator();
+
+        $file = $this->workbook([
+            ['NEW-01', 'First vote', 'active'],
+            ['NEW-02', 'Second vote', 'active'],
+        ]);
+
+        $this->actingAs($admin)
+            ->post('/votes/import/validate', ['file' => $file])
+            ->assertOk();
+
+        Vote::create([
+            'code' => 'NEW-02',
+            'description' => 'Existing vote',
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($admin)
+            ->post('/votes/import', ['file' => $file])
+            ->assertSessionHasErrors('file');
+
+        $this->assertDatabaseCount('votes', 1);
+
+        $this->assertDatabaseMissing('votes', [
+            'code' => 'NEW-01',
+        ]);
+
+        $this->assertDatabaseCount('vote_audit_events', 0);
+    }
+
+    private function administrator(): User
+    {
+        $user = User::factory()->create();
+
+        $user->forceFill([
+            'is_admin' => true,
+        ])->save();
+
+        return $user;
+    }
+
+    private function workbook(array $rows): UploadedFile
+    {
+        $path = tempnam(sys_get_temp_dir(), 'vote_import_');
+        $this->assertNotFalse($path);
+
+        $this->temporaryFiles[] = $path;
+
+        $spreadsheet = new Spreadsheet();
+
+        $spreadsheet->getActiveSheet()->fromArray([
+            ['Vote code', 'Vote description', 'Status'],
+            ...$rows,
+        ]);
+
+        (new Xlsx($spreadsheet))->save($path);
+        $spreadsheet->disconnectWorksheets();
+
+        return new UploadedFile(
+            $path,
+            'vote-import.xlsx',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            null,
+            true
+        );
+    }
+}

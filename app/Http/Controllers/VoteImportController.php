@@ -3,7 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Vote;
+use App\Services\VoteService;
+use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -31,6 +35,92 @@ class VoteImportController extends Controller
     }
 
     public function validateFile(Request $request): Response
+    {
+        $request->session()->forget('vote_import_review');
+
+        $result = $this->readWorkbook($request);
+
+        if ($result['invalid'] === 0) {
+            $request->session()->put('vote_import_review', [
+                'user_id' => $request->user()->id,
+                'hash' => hash_file(
+                    'sha256',
+                    $request->file('file')->getRealPath()
+                ),
+            ]);
+        }
+
+        return Inertia::render('votes/import', [
+            'result' => $result,
+        ]);
+    }
+
+    public function store(
+        Request $request,
+        VoteService $voteService
+    ): RedirectResponse {
+        $request->validate([
+            'file' => ['required', 'file', 'mimes:xlsx', 'max:2048'],
+        ]);
+
+        $review = $request->session()->get('vote_import_review');
+
+        $fileHash = hash_file(
+            'sha256',
+            $request->file('file')->getRealPath()
+        );
+
+        if (
+            ! is_array($review)
+            || ($review['user_id'] ?? null) !== $request->user()->id
+            || ! isset($review['hash'])
+            || ! hash_equals($review['hash'], $fileHash)
+        ) {
+            throw ValidationException::withMessages([
+                'file' => 'The selected file has changed or has not been reviewed. Validate it again before importing.',
+            ]);
+        }
+
+        $result = $this->readWorkbook($request);
+
+        if ($result['invalid'] > 0) {
+            $request->session()->forget('vote_import_review');
+
+            throw ValidationException::withMessages([
+                'file' => 'The workbook is no longer valid. Validate it again to see the errors.',
+            ]);
+        }
+
+        try {
+            DB::transaction(function () use ($result, $voteService, $request) {
+                foreach ($result['rows'] as $row) {
+                    $voteService->create([
+                        'code' => $row['code'],
+                        'description' => $row['description'],
+                        'is_active' => $row['status'] === 'active',
+                    ], $request->user());
+                }
+            });
+        } catch (UniqueConstraintViolationException $exception) {
+            $request->session()->forget('vote_import_review');
+
+            throw ValidationException::withMessages([
+                'file' => 'A vote code already exists. Validate the workbook again.',
+            ]);
+        } catch (ValidationException $exception) {
+            $request->session()->forget('vote_import_review');
+
+            throw ValidationException::withMessages([
+                'file' => 'A vote could not be imported. Validate the workbook again.',
+            ]);
+        }
+
+        $request->session()->forget('vote_import_review');
+
+        return redirect()->route('votes.index');
+    }
+
+    private function readWorkbook(Request $request): array
     {
         $request->validate([
             'file' => ['required', 'file', 'mimes:xlsx', 'max:2048'],
@@ -100,6 +190,7 @@ class VoteImportController extends Controller
                 ->all();
 
             $existingCodes = array_fill_keys($existingCodes, true);
+
             $seenCodes = [];
             $rows = [];
 
@@ -174,13 +265,11 @@ class VoteImportController extends Controller
                 fn ($row) => count($row['errors']) > 0
             ));
 
-            return Inertia::render('votes/import', [
-                'result' => [
-                    'rows' => $rows,
-                    'total' => count($rows),
-                    'invalid' => $invalidCount,
-                ],
-            ]);
+            return [
+                'rows' => $rows,
+                'total' => count($rows),
+                'invalid' => $invalidCount,
+            ];
         } finally {
             $spreadsheet->disconnectWorksheets();
         }
