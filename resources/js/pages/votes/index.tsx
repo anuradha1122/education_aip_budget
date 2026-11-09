@@ -81,6 +81,10 @@ function VotePage({ votes, search, editingVote }: Props) {
                     <p className="mt-1 text-sm text-muted-foreground">
                         Create, update and deactivate votes.
                     </p>
+
+                    <Link href="/vote-audit" className="mt-3 inline-block underline">
+                        View vote audit history
+                    </Link>
                 </div>
 
                 <section className="rounded-lg border p-4">

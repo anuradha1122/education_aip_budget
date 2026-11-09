@@ -13,8 +13,16 @@ The vote change and its audit event are saved in a database transaction.
     php artisan test --filter=VoteAuditTest
     php artisan test
 
+## Audit history page
+
+Administrators can open vote audit history from the vote management page.
+The page displays the acting user, action, recorded time, and previous and
+new values. Access requires the manage-master-data permission.
+
+The vote heading displays the current vote code and description. The
+previous and new values show the details recorded for each event.
+
 ## Remaining work
 
 - Add administrator-protected vote management.
 - Pass the authenticated user to the service from management actions.
-- Add an administrator-protected audit history page.

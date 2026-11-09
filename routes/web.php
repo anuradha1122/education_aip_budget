@@ -13,6 +13,7 @@ use App\Http\Controllers\OfficeImportController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\VoteController;
+use App\Http\Controllers\VoteAuditController;
 
 Route::get('/', function () {
     return Inertia::render('welcome');
@@ -102,6 +103,9 @@ Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
 
     Route::put('/votes/{vote}', [VoteController::class, 'update'])
         ->name('votes.update');
+
+    Route::get('/vote-audit', [VoteAuditController::class, 'index'])
+        ->name('votes.audit');
 });
 
 require __DIR__.'/settings.php';
