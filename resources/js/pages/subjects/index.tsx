@@ -80,6 +80,10 @@ function SubjectPage({ subjects, offices, editingSubject }: Props) {
                     <p className="mt-1 text-sm text-muted-foreground">
                         Create, update and deactivate subjects.
                     </p>
+
+                    <Link href="/subject-audit" className="mt-3 inline-block underline">
+                        View subject audit history
+                    </Link>
                 </div>
 
                 <section className="rounded-lg border p-4">

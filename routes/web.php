@@ -21,6 +21,7 @@ use App\Http\Controllers\VoteImportController;
 use App\Http\Controllers\FinancialYearController;
 use App\Http\Controllers\FinancialYearAuditController;
 use App\Http\Controllers\SubjectController;
+use App\Http\Controllers\SubjectAuditController;
 
 Route::get('/', function () {
     return Inertia::render('welcome');
@@ -162,6 +163,9 @@ Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
 
     Route::put('/subjects/{subject}', [SubjectController::class, 'update'])
         ->name('subjects.update');
+
+    Route::get('/subject-audit', [SubjectAuditController::class, 'index'])
+        ->name('subjects.audit');
 });
 
 require __DIR__.'/settings.php';

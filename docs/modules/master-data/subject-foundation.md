@@ -16,6 +16,7 @@ and needs confirmation from the department.
     php artisan test --filter=SubjectServiceTest
     php artisan test --filter=SubjectAuditTest
     php artisan test --filter=SubjectManagementTest
+    php artisan test --filter=SubjectAuditHistoryTest
 
 ## Validation service
 
@@ -47,8 +48,18 @@ not yet been established.
 Creation and updates through the page are recorded with the signed-in
 administrator in the subject audit table.
 
+## Audit history page
+
+Administrators can open subject audit history from the subject management
+page. The page shows the action, user, recorded time, and previous and new
+values. The recorded office is shown by its ID.
+
+The subject heading shows its current code and name. Previous and new
+values show the details recorded for each event.
+
+Access requires authentication and the manage-master-data permission.
+
 ## Remaining work
 
-- Add an administrator-protected audit history page.
 - Define responsible officers and designations.
 - Implement office-level access restrictions.
