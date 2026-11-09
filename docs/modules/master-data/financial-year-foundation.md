@@ -40,6 +40,23 @@ in the financial year audit table.
     npx tsc --noEmit
     npm run build
 
+## Editing and audit history
+
+Administrators can edit the year number and dates of an open financial
+year. The server rejects edits to closed years.
+
+Changes are recorded with the acting user and previous and new values.
+An unchanged year does not create an update event. Administrators can
+view the recorded events from the financial years page.
+
+## Tests
+
+    php artisan test --filter=FinancialYearEditTest
+    php artisan test --filter=FinancialYearAuditHistoryTest
+    php artisan test
+    npx tsc --noEmit
+    npm run build
+
 ## Remaining work
 
 - Record audit events for changes.

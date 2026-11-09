@@ -13,20 +13,12 @@ class FinancialYearController extends Controller
 {
     public function index(): Response
     {
-        $financialYears = FinancialYear::query()
-            ->orderByDesc('year')
-            ->get()
-            ->map(fn (FinancialYear $financialYear) => [
-                'id' => $financialYear->id,
-                'year' => $financialYear->year,
-                'start_date' => $financialYear->start_date->toDateString(),
-                'end_date' => $financialYear->end_date->toDateString(),
-                'is_closed' => $financialYear->is_closed,
-            ]);
+        return $this->renderPage();
+    }
 
-        return Inertia::render('financial-years/index', [
-            'financialYears' => $financialYears,
-        ]);
+    public function edit(FinancialYear $financialYear): Response
+    {
+        return $this->renderPage($financialYear);
     }
 
     public function store(
@@ -39,5 +31,45 @@ class FinancialYearController extends Controller
         );
 
         return redirect()->route('financial-years.index');
+    }
+
+    public function update(
+        Request $request,
+        FinancialYear $financialYear,
+        FinancialYearService $service
+    ): RedirectResponse {
+        $service->update(
+            $financialYear,
+            $request->only(['year', 'start_date', 'end_date']),
+            $request->user()
+        );
+
+        return redirect()->route('financial-years.index');
+    }
+
+    private function renderPage(?FinancialYear $editingYear = null): Response
+    {
+        $financialYears = FinancialYear::query()
+            ->orderByDesc('year')
+            ->get()
+            ->map(fn (FinancialYear $year) => $this->formatYear($year));
+
+        return Inertia::render('financial-years/index', [
+            'financialYears' => $financialYears,
+            'editingYear' => $editingYear
+                ? $this->formatYear($editingYear)
+                : null,
+        ]);
+    }
+
+    private function formatYear(FinancialYear $year): array
+    {
+        return [
+            'id' => $year->id,
+            'year' => $year->year,
+            'start_date' => $year->start_date->toDateString(),
+            'end_date' => $year->end_date->toDateString(),
+            'is_closed' => $year->is_closed,
+        ];
     }
 }

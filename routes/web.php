@@ -19,6 +19,7 @@ use App\Http\Controllers\VotePdfExportController;
 use App\Http\Controllers\VoteImportTemplateController;
 use App\Http\Controllers\VoteImportController;
 use App\Http\Controllers\FinancialYearController;
+use App\Http\Controllers\FinancialYearAuditController;
 
 Route::get('/', function () {
     return Inertia::render('welcome');
@@ -135,6 +136,19 @@ Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
 
     Route::post('/financial-years', [FinancialYearController::class, 'store'])
         ->name('financial-years.store');
+
+    Route::get('/financial-year-audit', [FinancialYearAuditController::class, 'index'])
+        ->name('financial-years.audit');
+
+    Route::get(
+        '/financial-years/{financialYear}/edit',
+        [FinancialYearController::class, 'edit']
+    )->name('financial-years.edit');
+
+    Route::put(
+        '/financial-years/{financialYear}',
+        [FinancialYearController::class, 'update']
+    )->name('financial-years.update');
 });
 
 require __DIR__.'/settings.php';

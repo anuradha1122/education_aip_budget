@@ -1,6 +1,6 @@
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 import { type FormEvent } from 'react';
 
 type FinancialYear = {
@@ -13,6 +13,7 @@ type FinancialYear = {
 
 type Props = {
     financialYears: FinancialYear[];
+    editingYear: FinancialYear | null;
 };
 
 type YearForm = {
@@ -26,20 +27,33 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Financial years', href: '/financial-years' },
 ];
 
-export default function FinancialYearIndex({ financialYears }: Props) {
-    const { data, setData, post, processing, errors, reset } =
+export default function FinancialYearIndex(props: Props) {
+    return (
+        <FinancialYearPage
+            key={props.editingYear?.id ?? 'new'}
+            {...props}
+        />
+    );
+}
+
+function FinancialYearPage({ financialYears, editingYear }: Props) {
+    const { data, setData, post, put, processing, errors, reset } =
         useForm<YearForm>({
-            year: '',
-            start_date: '',
-            end_date: '',
+            year: editingYear ? String(editingYear.year) : '',
+            start_date: editingYear?.start_date ?? '',
+            end_date: editingYear?.end_date ?? '',
         });
 
     function submit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
 
-        post('/financial-years', {
-            onSuccess: () => reset(),
-        });
+        if (editingYear) {
+            put(`/financial-years/${editingYear.id}`);
+        } else {
+            post('/financial-years', {
+                onSuccess: () => reset(),
+            });
+        }
     }
 
     return (
@@ -55,11 +69,18 @@ export default function FinancialYearIndex({ financialYears }: Props) {
                     <p className="mt-1 text-sm text-muted-foreground">
                         Create and view financial years.
                     </p>
+
+                    <a
+                        href="/financial-year-audit"
+                        className="mt-3 inline-block underline"
+                    >
+                        View financial year audit history
+                    </a>
                 </div>
 
                 <section className="rounded-lg border p-4">
                     <h2 className="mb-4 text-lg font-semibold">
-                        Add financial year
+                        {editingYear ? 'Edit financial year' : 'Add financial year'}
                     </h2>
 
                     <form
@@ -152,8 +173,21 @@ export default function FinancialYearIndex({ financialYears }: Props) {
                                 disabled={processing}
                                 className="rounded-md bg-primary px-4 py-2 text-primary-foreground disabled:opacity-50"
                             >
-                                {processing ? 'Creating...' : 'Create financial year'}
+                                {processing
+                                    ? 'Saving...'
+                                    : editingYear
+                                    ? 'Save changes'
+                                    : 'Create financial year'}
                             </button>
+
+                            {editingYear && (
+                                <Link
+                                    href="/financial-years"
+                                    className="ml-3 text-sm underline"
+                                >
+                                    Cancel editing
+                                </Link>
+                            )}
                         </div>
                     </form>
                 </section>
@@ -171,13 +205,14 @@ export default function FinancialYearIndex({ financialYears }: Props) {
                                     <th className="p-2">Start date</th>
                                     <th className="p-2">End date</th>
                                     <th className="p-2">Status</th>
+                                    <th className="p-2">Action</th>
                                 </tr>
                             </thead>
 
                             <tbody>
                                 {financialYears.length === 0 ? (
                                     <tr>
-                                        <td colSpan={4} className="p-2">
+                                        <td colSpan={5} className="p-2">
                                             No financial years found.
                                         </td>
                                     </tr>
@@ -200,6 +235,18 @@ export default function FinancialYearIndex({ financialYears }: Props) {
                                                 {financialYear.is_closed
                                                     ? 'Closed'
                                                     : 'Open'}
+                                            </td>
+                                            <td className="p-2">
+                                                {financialYear.is_closed ? (
+                                                    'Closed'
+                                                ) : (
+                                                    <Link
+                                                        href={`/financial-years/${financialYear.id}/edit`}
+                                                        className="underline"
+                                                    >
+                                                        Edit
+                                                    </Link>
+                                                )}
                                             </td>
                                         </tr>
                                     ))
