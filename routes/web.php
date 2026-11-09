@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\VoteController;
 use App\Http\Controllers\VoteAuditController;
+use App\Http\Controllers\VoteExportController;
 
 Route::get('/', function () {
     return Inertia::render('welcome');
@@ -106,6 +107,9 @@ Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
 
     Route::get('/vote-audit', [VoteAuditController::class, 'index'])
         ->name('votes.audit');
+
+    Route::get('/votes/export/excel', [VoteExportController::class, 'excel'])
+        ->name('votes.export.excel');
 });
 
 require __DIR__.'/settings.php';

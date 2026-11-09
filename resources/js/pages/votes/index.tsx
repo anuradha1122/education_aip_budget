@@ -82,9 +82,15 @@ function VotePage({ votes, search, editingVote }: Props) {
                         Create, update and deactivate votes.
                     </p>
 
-                    <Link href="/vote-audit" className="mt-3 inline-block underline">
-                        View vote audit history
-                    </Link>
+                    <div className="mt-3 flex flex-wrap gap-x-6 gap-y-2">
+                        <Link href="/vote-audit" className="underline">
+                            View vote audit history
+                        </Link>
+
+                        <a href="/votes/export/excel" className="underline">
+                            Download vote list (Excel)
+                        </a>
+                    </div>
                 </div>
 
                 <section className="rounded-lg border p-4">
