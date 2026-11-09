@@ -1,25 +1,34 @@
-# Vote import template
+# Vote Excel import
 
-Administrators can download a blank Excel template from the vote
-management page.
+Administrators can download a blank Excel template and upload a
+completed workbook for validation.
 
-The template contains three columns:
+## Template columns
 
 - Vote code
 - Vote description
-- Status
+- Status: Active or Inactive
 
-The download route requires authentication and the
-manage-master-data permission.
+## Validation
+
+The workbook must be an XLSX file with one worksheet and the three
+template headings. It can be no larger than 2 MB and can contain up to
+500 data rows.
+
+Validation checks required fields, status, duplicate vote codes, existing
+vote codes and formulas. Errors are displayed by row.
+
+Validation does not save any votes. The download and validation routes
+require authentication and the manage-master-data permission.
 
 ## Tests
 
     php artisan test --filter=VoteImportTemplateTest
+    php artisan test --filter=VoteImportValidationTest
     php artisan test
     npx tsc --noEmit
     npm run build
 
 ## Remaining work
 
-- Validate completed workbooks and display errors.
 - Import reviewed, valid votes and record audit events.

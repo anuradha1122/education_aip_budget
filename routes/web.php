@@ -17,6 +17,7 @@ use App\Http\Controllers\VoteAuditController;
 use App\Http\Controllers\VoteExportController;
 use App\Http\Controllers\VotePdfExportController;
 use App\Http\Controllers\VoteImportTemplateController;
+use App\Http\Controllers\VoteImportController;
 
 Route::get('/', function () {
     return Inertia::render('welcome');
@@ -118,6 +119,12 @@ Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
 
     Route::get('/votes/import/template', [VoteImportTemplateController::class, 'download'])
         ->name('votes.import.template');
+
+    Route::get('/votes/import', [VoteImportController::class, 'index'])
+        ->name('votes.import.index');
+
+    Route::post('/votes/import/validate', [VoteImportController::class, 'validateFile'])
+        ->name('votes.import.validate');
 });
 
 require __DIR__.'/settings.php';

@@ -98,6 +98,10 @@ function VotePage({ votes, search, editingVote }: Props) {
                         <a href="/votes/import/template" className="underline">
                             Download vote import template
                         </a>
+
+                        <Link href="/votes/import" className="underline">
+                            Validate vote import
+                        </Link>
                     </div>
                 </div>
 
