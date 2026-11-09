@@ -42,7 +42,6 @@ in the financial year audit table.
 
 ## Remaining work
 
-- Add a permission-aware sidebar link.
 - Record audit events for changes.
 - Implement controlled closing and reopening.
 - Enforce read-only restrictions on closed years when financial records

@@ -62,6 +62,11 @@ export function AppSidebar() {
                 url: '/votes',
                 icon: Landmark,
             },
+            {
+                title: 'Financial years',
+                url: '/financial-years',
+                icon: Landmark,
+            },
         );
     }
 
