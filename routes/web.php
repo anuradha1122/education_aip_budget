@@ -12,6 +12,7 @@ use App\Http\Controllers\OfficeExportController;
 use App\Http\Controllers\OfficeImportController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use App\Http\Controllers\VoteController;
 
 Route::get('/', function () {
     return Inertia::render('welcome');
@@ -89,6 +90,18 @@ Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
 
     Route::put('/funds/{fund}', [FundController::class, 'update'])
         ->name('funds.update');
+
+    Route::get('/votes', [VoteController::class, 'index'])
+        ->name('votes.index');
+
+    Route::get('/votes/{vote}/edit', [VoteController::class, 'edit'])
+        ->name('votes.edit');
+
+    Route::post('/votes', [VoteController::class, 'store'])
+        ->name('votes.store');
+
+    Route::put('/votes/{vote}', [VoteController::class, 'update'])
+        ->name('votes.update');
 });
 
 require __DIR__.'/settings.php';
