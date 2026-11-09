@@ -13,10 +13,19 @@ and needs confirmation from the department.
 
     php artisan test --filter=SubjectDatabaseTest
     php artisan test
+    php artisan test --filter=SubjectServiceTest
+
+## Validation service
+
+The subject service requires an existing office, a code, a name and an
+active status. It trims the code and name and converts the code to
+uppercase. It checks that a code is unique within the selected office.
+
+The service supports updating and deactivating a subject.
 
 ## Remaining work
 
-- Add server-side validation and audit history.
+- Add audit history.
 - Add protected subject management.
 - Define responsible officers and designations.
 - Implement office-level access restrictions.
