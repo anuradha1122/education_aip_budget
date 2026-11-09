@@ -17,6 +17,14 @@ years are created open.
 A department-specific calendar and overlap rules have not yet been
 established.
 
+## Creation audit
+
+Creating a financial year through the service records a creation event
+with its values and the acting user when supplied. The year and audit
+event are saved in one database transaction.
+
+Audit events for closing and reopening remain to be implemented.
+
 ## Remaining work
 
 - Add protected routes and a management page.
