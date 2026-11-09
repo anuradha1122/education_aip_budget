@@ -57,6 +57,11 @@ export function AppSidebar() {
                 url: '/funds',
                 icon: Landmark,
             },
+            {
+                title: 'Votes',
+                url: '/votes',
+                icon: Landmark,
+            },
         );
     }
 

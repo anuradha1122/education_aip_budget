@@ -15,6 +15,5 @@ table with the authenticated user.
 
 ## Remaining work
 
-- Add a permission-aware sidebar link.
 - Add a vote audit history page.
 - Add applicable Excel and PDF features.
