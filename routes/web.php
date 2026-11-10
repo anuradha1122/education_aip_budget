@@ -175,6 +175,11 @@ Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
             \App\Http\Controllers\SubjectPdfExportController::class,
             'download',
         ])->name('subjects.export.pdf');
+
+    Route::get('/subjects/import/template', [
+            \App\Http\Controllers\SubjectImportTemplateController::class,
+            'download',
+        ])->name('subjects.import.template');
 });
 
 require __DIR__.'/settings.php';

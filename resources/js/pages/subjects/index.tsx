@@ -93,6 +93,10 @@ function SubjectPage({ subjects, offices, editingSubject }: Props) {
                         <a href="/subjects/export/pdf" className="underline">
                             Download subject list (PDF)
                         </a>
+
+                        <a href="/subjects/import/template" className="underline">
+                            Download subject import template
+                        </a>
                     </div>
                 </div>
 
