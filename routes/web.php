@@ -22,6 +22,7 @@ use App\Http\Controllers\FinancialYearController;
 use App\Http\Controllers\FinancialYearAuditController;
 use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\SubjectAuditController;
+use App\Http\Controllers\SubjectExportController;
 
 Route::get('/', function () {
     return Inertia::render('welcome');
@@ -166,6 +167,9 @@ Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
 
     Route::get('/subject-audit', [SubjectAuditController::class, 'index'])
         ->name('subjects.audit');
+
+    Route::get('/subjects/export/excel', [SubjectExportController::class, 'excel'])
+        ->name('subjects.export.excel');
 });
 
 require __DIR__.'/settings.php';
