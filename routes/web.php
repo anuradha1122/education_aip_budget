@@ -170,6 +170,11 @@ Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
 
     Route::get('/subjects/export/excel', [SubjectExportController::class, 'excel'])
         ->name('subjects.export.excel');
+
+    Route::get('/subjects/export/pdf', [
+            \App\Http\Controllers\SubjectPdfExportController::class,
+            'download',
+        ])->name('subjects.export.pdf');
 });
 
 require __DIR__.'/settings.php';

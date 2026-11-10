@@ -89,6 +89,10 @@ function SubjectPage({ subjects, offices, editingSubject }: Props) {
                         <a href="/subjects/export/excel" className="underline">
                             Download subject list (Excel)
                         </a>
+
+                        <a href="/subjects/export/pdf" className="underline">
+                            Download subject list (PDF)
+                        </a>
                     </div>
                 </div>
 
