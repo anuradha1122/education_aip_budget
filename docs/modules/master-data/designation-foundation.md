@@ -4,9 +4,12 @@ The designations table stores a designation code, name, and active status.
 Designation codes are unique. Designations can be marked inactive without
 deleting their records.
 
-This step provides the database table and model. Validation, management
-screens, audit history, and officer relationships are future work.
+The designation service trims names, converts codes to uppercase, validates
+required fields, and rejects duplicate codes.
+
+Management screens, audit history, and officer relationships are future work.
 
 ## Testing
 
     php artisan test --filter=DesignationDatabaseTest
+    php artisan test --filter=DesignationServiceTest
