@@ -225,6 +225,11 @@ Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
         \App\Http\Controllers\DesignationPdfExportController::class,
         'download',
     ])->name('designations.export.pdf');
+
+    Route::get('/designations/import/template', [
+        \App\Http\Controllers\DesignationImportTemplateController::class,
+        'download',
+    ])->name('designations.import.template');
 });
 
 require __DIR__.'/settings.php';
