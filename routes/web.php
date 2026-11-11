@@ -260,6 +260,11 @@ Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
         \App\Http\Controllers\OfficerController::class,
         'update',
     ])->name('officers.update');
+
+    Route::get('/officers/audit', [
+        \App\Http\Controllers\OfficerAuditController::class,
+        'index',
+    ])->name('officers.audit');
 });
 
 require __DIR__.'/settings.php';

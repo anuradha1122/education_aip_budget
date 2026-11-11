@@ -124,6 +124,12 @@ export default function OfficerIndex({
                     <p className="mt-2 text-sm text-muted-foreground">
                         Create, update and deactivate officers.
                     </p>
+
+                    <div>
+                        <a href="/officers/audit" className="mt-4 inline-block underline">
+                            View officer audit history
+                        </a>
+                    </div>
                 </div>
 
                 <section className="rounded-lg border p-4">

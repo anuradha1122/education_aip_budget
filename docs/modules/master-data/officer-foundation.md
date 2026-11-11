@@ -17,7 +17,16 @@ transaction.
 
 The table does not create or link login accounts. The management page is
 available through the sidebar to users with master data management
-permission. An audit history page and assignment history are future work.
+permission. 
+The management page, sidebar link, and audit history page are available
+to users with master data management permission.
+
+Audit events store office and designation IDs. The audit history page
+shows their current names alongside those IDs; the names may differ from
+the names at the time of the event if they have since been changed.
+
+The table does not create or link login accounts. A separate assignment
+history is future work.
 
 ## Testing
 
@@ -27,3 +36,4 @@ permission. An audit history page and assignment history are future work.
     php artisan test --filter=OfficerManagementTest
     npx tsc --noEmit
     npm run build
+    php artisan test --filter=OfficerAuditHistoryTest
