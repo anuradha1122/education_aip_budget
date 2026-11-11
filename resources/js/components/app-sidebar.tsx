@@ -47,6 +47,7 @@ export function AppSidebar() {
 
     if (permissions?.manage_master_data) {
         mainNavItems.push(
+            
             {
                 title: 'Offices',
                 url: '/offices',
@@ -73,6 +74,12 @@ export function AppSidebar() {
                 icon: Landmark,
             },
         );
+
+        mainNavItems.push({
+            title: 'Designations',
+            url: '/designations',
+            icon: Building2,
+        });
     }
 
     return (

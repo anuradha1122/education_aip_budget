@@ -13,8 +13,8 @@ when provided and the previous and new values. An unchanged designation
 does not produce an update event. The change and audit event are saved in
 the same transaction.
 
-The management page is available to users with master data management
-permission. Sidebar navigation and an audit history page are future work.
+The management page and sidebar link are available to users with master
+data management permission. An audit history page is future work.
 
 ## Testing
 
