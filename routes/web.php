@@ -220,6 +220,11 @@ Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
         \App\Http\Controllers\DesignationExportController::class,
         'excel',
     ])->name('designations.export.excel');
+
+    Route::get('/designations/export/pdf', [
+        \App\Http\Controllers\DesignationPdfExportController::class,
+        'download',
+    ])->name('designations.export.pdf');
 });
 
 require __DIR__.'/settings.php';
