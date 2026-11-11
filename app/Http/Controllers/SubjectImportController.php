@@ -4,6 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Office;
 use App\Models\Subject;
+use App\Services\SubjectService;
+use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -33,6 +37,68 @@ class SubjectImportController extends Controller
     }
 
     public function validateFile(Request $request): Response
+    {
+        $request->session()->forget('subject_import_review');
+        $result = $this->readWorkbook($request);
+
+        if ($result['invalid'] === 0) {
+            $request->session()->put('subject_import_review', [
+                'user_id' => $request->user()->id,
+                'hash' => hash_file('sha256', $request->file('file')->getRealPath()),
+                'office_ids' => array_column($result['rows'], 'office_id'),
+            ]);
+        }
+
+        return Inertia::render('subjects/import', ['result' => $result]);
+    }
+
+    public function store(Request $request, SubjectService $subjectService): RedirectResponse
+    {
+        $request->validate([
+            'file' => ['required', 'file', 'mimes:xlsx', 'max:2048'],
+        ]);
+
+        $review = $request->session()->pull('subject_import_review');
+        $hash = hash_file('sha256', $request->file('file')->getRealPath());
+
+        if (! is_array($review)
+            || ($review['user_id'] ?? null) !== $request->user()->id
+            || ! is_string($review['hash'] ?? null)
+            || ! hash_equals($review['hash'], $hash)) {
+            throw ValidationException::withMessages([
+                'file' => 'The selected file has changed or has not been reviewed. Validate it again before importing.',
+            ]);
+        }
+
+        $result = $this->readWorkbook($request);
+
+        if ($result['invalid'] > 0 || ($review['office_ids'] ?? null) !== array_column($result['rows'], 'office_id')) {
+            throw ValidationException::withMessages([
+                'file' => 'The workbook is no longer valid or an office has changed. Validate it again before importing.',
+            ]);
+        }
+
+        try {
+            DB::transaction(function () use ($result, $subjectService, $request) {
+                foreach ($result['rows'] as $row) {
+                    $subjectService->create([
+                        'office_id' => $row['office_id'],
+                        'code' => $row['code'],
+                        'name' => $row['name'],
+                        'is_active' => $row['status'] === 'active',
+                    ], $request->user());
+                }
+            });
+        } catch (UniqueConstraintViolationException | ValidationException $exception) {
+            throw ValidationException::withMessages([
+                'file' => 'A subject could not be imported. Validate the workbook again.',
+            ]);
+        }
+
+        return redirect()->route('subjects.index');
+    }
+
+    private function readWorkbook(Request $request): array
     {
         $request->validate([
             'file' => ['required', 'file', 'mimes:xlsx', 'max:2048'],
@@ -195,6 +261,7 @@ class SubjectImportController extends Controller
                 $rows[] = [
                     'row' => $rowNumber,
                     'office_code' => $officeCode,
+                    'office_id' => $officeId,
                     'code' => $code,
                     'name' => $name,
                     'status' => $status,
@@ -213,13 +280,11 @@ class SubjectImportController extends Controller
                 fn ($row) => count($row['errors']) > 0
             ));
 
-            return Inertia::render('subjects/import', [
-                'result' => [
-                    'rows' => $rows,
-                    'total' => count($rows),
-                    'invalid' => $invalidCount,
-                ],
-            ]);
+            return [
+                'rows' => $rows,
+                'total' => count($rows),
+                'invalid' => $invalidCount,
+            ];
         } finally {
             $spreadsheet->disconnectWorksheets();
         }

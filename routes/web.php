@@ -190,6 +190,11 @@ Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
         \App\Http\Controllers\SubjectImportController::class,
         'validateFile',
         ])->name('subjects.import.validate');
+
+    Route::post('/subjects/import', [
+        \App\Http\Controllers\SubjectImportController::class,
+        'store',
+    ])->name('subjects.import.store');
 });
 
 require __DIR__.'/settings.php';

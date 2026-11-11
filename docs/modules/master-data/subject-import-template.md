@@ -1,33 +1,34 @@
-# Subject import template and validation
+# Subject import
 
 Administrators can download a blank Excel template from the Subjects page.
 
-The template contains these columns:
+The template contains:
 
 - Office code
 - Subject code
 - Subject name
 - Status
 
-Administrators can upload the completed workbook to review validation
-results. The workbook must be XLSX, no larger than 2 MB, and contain no
-more than 500 data rows.
+The workbook must be XLSX, no larger than 2 MB, and contain no more than
+500 data rows.
 
-Validation checks that the office exists, required details are provided,
-the status is Active or Inactive, and the subject code is not duplicated
-within the same office. The same subject code can be used by another office.
+Administrators can validate the workbook and review each row before
+importing. Validation checks required values, office codes, status, and
+duplicate subject codes within each office.
 
-Validation does not save subjects. Importing reviewed subjects will be
-added separately.
+The Import subjects button appears after a valid workbook is reviewed.
+The server checks the workbook again before saving. It rejects a changed
+file, a newly conflicting subject code, or a changed office assignment.
+Imported subjects are recorded in the subject audit history.
 
-Only users with master data management permission can access this feature.
+Only users with master data management permission can use this feature.
 
 ## Testing
 
-    php artisan test --filter=SubjectImportTemplateTest
     php artisan test --filter=SubjectImportValidationTest
+    php artisan test --filter=SubjectImportSaveTest
     npx tsc --noEmit
     npm run build
 
-In the browser, validate workbooks containing valid rows, an unknown office,
-an existing subject code, and invalid values.
+Also validate and import a workbook in the browser, then check the subject
+list and audit history.
