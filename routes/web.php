@@ -240,6 +240,11 @@ Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
         \App\Http\Controllers\DesignationImportController::class,
         'validateFile',
     ])->name('designations.import.validate');
+
+    Route::post('/designations/import', [
+        \App\Http\Controllers\DesignationImportController::class,
+        'store',
+    ])->name('designations.import.store');
 });
 
 require __DIR__.'/settings.php';

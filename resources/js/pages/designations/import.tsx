@@ -1,7 +1,7 @@
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, useForm } from '@inertiajs/react';
-import { type FormEvent } from 'react';
+import { type FormEvent, useState } from 'react';
 
 type ImportRow = {
     row: number;
@@ -36,11 +36,42 @@ export default function DesignationImport({ result }: Props) {
         file: null,
     });
 
+    const [reviewedFile, setReviewedFile] = useState<File | null>(null);
+
+    const importForm = useForm<UploadForm>({
+        file: null,
+    });
+
     function submit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
 
+        setReviewedFile(null);
+        importForm.clearErrors();
+
+        const fileToReview = data.file;
+
         post('/designations/import/validate', {
             forceFormData: true,
+            onSuccess: () => {
+                setReviewedFile(fileToReview);
+            },
+        });
+    }
+
+    function importDesignations() {
+        if (!reviewedFile || reviewedFile !== data.file) {
+            return;
+        }
+
+        importForm.transform(() => ({
+            file: reviewedFile,
+        }));
+
+        importForm.post('/designations/import', {
+            forceFormData: true,
+            onError: () => {
+                setReviewedFile(null);
+            },
         });
     }
 
@@ -61,10 +92,7 @@ export default function DesignationImport({ result }: Props) {
                 </div>
 
                 <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
-                    <a
-                        href="/designations/import/template"
-                        className="underline"
-                    >
+                    <a href="/designations/import/template" className="underline">
                         Download template
                     </a>
 
@@ -85,10 +113,12 @@ export default function DesignationImport({ result }: Props) {
                         id="file"
                         type="file"
                         accept=".xlsx"
-                        onChange={(event) =>
-                            setData('file', event.target.files?.[0] ?? null)
-                        }
-                        disabled={processing}
+                        onChange={(event) => {
+                            setReviewedFile(null);
+                            importForm.clearErrors();
+                            setData('file', event.target.files?.[0] ?? null);
+                        }}
+                        disabled={processing || importForm.processing}
                         required
                     />
 
@@ -132,6 +162,31 @@ export default function DesignationImport({ result }: Props) {
                             No designations have been saved.
                         </p>
 
+                        {importForm.errors.file && (
+                            <p className="mt-3 text-sm text-red-600">
+                                {importForm.errors.file}
+                            </p>
+                        )}
+
+                        {result.invalid === 0 &&
+                            reviewedFile !== null &&
+                            reviewedFile === data.file && (
+                                <div className="mt-4">
+                                    <p className="mb-2 text-sm">
+                                        Review the rows below before importing.
+                                    </p>
+
+                                    <button
+                                        type="button"
+                                        onClick={importDesignations}
+                                        disabled={importForm.processing || processing}
+                                        className="rounded-md bg-primary px-4 py-2 text-primary-foreground disabled:opacity-50"
+                                    >
+                                        {importForm.processing ? 'Importing...' : 'Import designations'}
+                                    </button>
+                                </div>
+                            )}
+
                         <div className="mt-4 overflow-x-auto">
                             <table className="w-full text-left text-sm">
                                 <thead>
@@ -149,7 +204,9 @@ export default function DesignationImport({ result }: Props) {
                                         <tr key={row.row} className="border-b">
                                             <td className="p-2">{row.row}</td>
                                             <td className="p-2">{row.code}</td>
-                                            <td className="p-2">{row.name}</td>
+                                            <td className="p-2">
+                                                {row.name}
+                                            </td>
                                             <td className="p-2">{row.status}</td>
                                             <td className="p-2">
                                                 {row.errors.length === 0 ? (

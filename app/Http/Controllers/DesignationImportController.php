@@ -3,7 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Designation;
+use App\Services\DesignationService;
+use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -31,6 +35,92 @@ class DesignationImportController extends Controller
     }
 
     public function validateFile(Request $request): Response
+    {
+        $request->session()->forget('designation_import_review');
+
+        $result = $this->readWorkbook($request);
+
+        if ($result['invalid'] === 0) {
+            $request->session()->put('designation_import_review', [
+                'user_id' => $request->user()->id,
+                'hash' => hash_file(
+                    'sha256',
+                    $request->file('file')->getRealPath()
+                ),
+            ]);
+        }
+
+        return Inertia::render('designations/import', [
+            'result' => $result,
+        ]);
+    }
+
+    public function store(
+        Request $request,
+        DesignationService $designationService
+    ): RedirectResponse {
+        $request->validate([
+            'file' => ['required', 'file', 'mimes:xlsx', 'max:2048'],
+        ]);
+
+        $review = $request->session()->get('designation_import_review');
+
+        $fileHash = hash_file(
+            'sha256',
+            $request->file('file')->getRealPath()
+        );
+
+        if (
+            ! is_array($review)
+            || ($review['user_id'] ?? null) !== $request->user()->id
+            || ! isset($review['hash'])
+            || ! hash_equals($review['hash'], $fileHash)
+        ) {
+            throw ValidationException::withMessages([
+                'file' => 'The selected file has changed or has not been reviewed. Validate it again before importing.',
+            ]);
+        }
+
+        $result = $this->readWorkbook($request);
+
+        if ($result['invalid'] > 0) {
+            $request->session()->forget('designation_import_review');
+
+            throw ValidationException::withMessages([
+                'file' => 'The workbook is no longer valid. Validate it again to see the errors.',
+            ]);
+        }
+
+        try {
+            DB::transaction(function () use ($result, $designationService, $request) {
+                foreach ($result['rows'] as $row) {
+                    $designationService->create([
+                        'code' => $row['code'],
+                        'name' => $row['name'],
+                        'is_active' => $row['status'] === 'active',
+                    ], $request->user());
+                }
+            });
+        } catch (UniqueConstraintViolationException $exception) {
+            $request->session()->forget('designation_import_review');
+
+            throw ValidationException::withMessages([
+                'file' => 'A designation code already exists. Validate the workbook again.',
+            ]);
+        } catch (ValidationException $exception) {
+            $request->session()->forget('designation_import_review');
+
+            throw ValidationException::withMessages([
+                'file' => 'A designation could not be imported. Validate the workbook again.',
+            ]);
+        }
+
+        $request->session()->forget('designation_import_review');
+
+        return redirect()->route('designations.index');
+    }
+
+    private function readWorkbook(Request $request): array
     {
         $request->validate([
             'file' => ['required', 'file', 'mimes:xlsx', 'max:2048'],
@@ -100,6 +190,7 @@ class DesignationImportController extends Controller
                 ->all();
 
             $existingCodes = array_fill_keys($existingCodes, true);
+
             $seenCodes = [];
             $rows = [];
 
@@ -174,13 +265,11 @@ class DesignationImportController extends Controller
                 fn ($row) => count($row['errors']) > 0
             ));
 
-            return Inertia::render('designations/import', [
-                'result' => [
-                    'rows' => $rows,
-                    'total' => count($rows),
-                    'invalid' => $invalidCount,
-                ],
-            ]);
+            return [
+                'rows' => $rows,
+                'total' => count($rows),
+                'invalid' => $invalidCount,
+            ];
         } finally {
             $spreadsheet->disconnectWorksheets();
         }

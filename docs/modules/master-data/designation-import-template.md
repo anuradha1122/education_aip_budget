@@ -1,7 +1,7 @@
-# Designation import template and validation
+# Designation import
 
-Users with master data management permission can download a blank Excel
-template and validate a completed workbook from the Designations page.
+Users with master data management permission can download the Excel
+template, validate a completed workbook, and import reviewed designations.
 
 The template contains:
 
@@ -13,14 +13,17 @@ The workbook must be XLSX, no larger than 2 MB, and contain no more than
 500 data rows. Validation checks required fields, status, duplicate codes,
 and codes that already exist in the system.
 
-Validation displays row errors without saving any designations. Importing
-reviewed designations will be added separately.
+The Import designations button appears after a valid workbook is reviewed.
+The server checks the file and validates its contents again before saving.
+Imported designations are recorded in the designation audit history.
 
 ## Testing
 
     php artisan test --filter=DesignationImportTemplateTest
     php artisan test --filter=DesignationImportValidationTest
+    php artisan test --filter=DesignationImportSaveTest
     npx tsc --noEmit
     npm run build
 
-In the browser, validate workbooks containing valid and invalid rows.
+Also validate and import a workbook in the browser, then check the
+designation list and audit history.
