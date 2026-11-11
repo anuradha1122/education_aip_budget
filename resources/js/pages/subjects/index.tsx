@@ -97,6 +97,10 @@ function SubjectPage({ subjects, offices, editingSubject }: Props) {
                         <a href="/subjects/import/template" className="underline">
                             Download subject import template
                         </a>
+
+                        <a href="/subjects/import" className="underline">
+                            Validate subject import
+                        </a>
                     </div>
                 </div>
 

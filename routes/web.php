@@ -180,6 +180,16 @@ Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
             \App\Http\Controllers\SubjectImportTemplateController::class,
             'download',
         ])->name('subjects.import.template');
+
+    Route::get('/subjects/import', [
+        \App\Http\Controllers\SubjectImportController::class,
+        'index',
+        ])->name('subjects.import.index');
+
+    Route::post('/subjects/import/validate', [
+        \App\Http\Controllers\SubjectImportController::class,
+        'validateFile',
+        ])->name('subjects.import.validate');
 });
 
 require __DIR__.'/settings.php';
