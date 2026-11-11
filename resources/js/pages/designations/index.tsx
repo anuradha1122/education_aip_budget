@@ -104,9 +104,18 @@ export default function DesignationIndex({ designations, filters }: Props) {
                         Create, update and deactivate designations.
                     </p>
 
-                    <a href="/designations/audit" className="mt-4 inline-block underline">
-                        View designation audit history
-                    </a>
+                    <div className="flex flex-wrap gap-x-6 gap-y-2">
+                        <a href="/designations/audit" className="mt-4 inline-block underline">
+                            View designation audit history
+                        </a>
+
+                        <a
+                            href="/designations/export/excel"
+                            className="mt-4 inline-block underline"
+                        >
+                            Download designation list (Excel)
+                        </a>
+                    </div>
                 </div>
 
                 <section className="rounded-lg border p-4">

@@ -215,6 +215,11 @@ Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
         \App\Http\Controllers\DesignationAuditController::class,
         'index',
     ])->name('designations.audit');
+
+    Route::get('/designations/export/excel', [
+        \App\Http\Controllers\DesignationExportController::class,
+        'excel',
+    ])->name('designations.export.excel');
 });
 
 require __DIR__.'/settings.php';
