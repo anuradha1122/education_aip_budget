@@ -245,6 +245,21 @@ Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
         \App\Http\Controllers\DesignationImportController::class,
         'store',
     ])->name('designations.import.store');
+
+    Route::get('/officers', [
+        \App\Http\Controllers\OfficerController::class,
+        'index',
+    ])->name('officers.index');
+
+    Route::post('/officers', [
+        \App\Http\Controllers\OfficerController::class,
+        'store',
+    ])->name('officers.store');
+
+    Route::put('/officers/{officer}', [
+        \App\Http\Controllers\OfficerController::class,
+        'update',
+    ])->name('officers.update');
 });
 
 require __DIR__.'/settings.php';
