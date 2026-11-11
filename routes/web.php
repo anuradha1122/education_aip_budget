@@ -195,6 +195,21 @@ Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
         \App\Http\Controllers\SubjectImportController::class,
         'store',
     ])->name('subjects.import.store');
+
+    Route::get('/designations', [
+        \App\Http\Controllers\DesignationController::class,
+        'index',
+    ])->name('designations.index');
+
+    Route::post('/designations', [
+        \App\Http\Controllers\DesignationController::class,
+        'store',
+    ])->name('designations.store');
+
+    Route::put('/designations/{designation}', [
+        \App\Http\Controllers\DesignationController::class,
+        'update',
+    ])->name('designations.update');
 });
 
 require __DIR__.'/settings.php';
