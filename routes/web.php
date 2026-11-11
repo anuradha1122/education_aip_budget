@@ -210,6 +210,11 @@ Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
         \App\Http\Controllers\DesignationController::class,
         'update',
     ])->name('designations.update');
+
+    Route::get('/designations/audit', [
+        \App\Http\Controllers\DesignationAuditController::class,
+        'index',
+    ])->name('designations.audit');
 });
 
 require __DIR__.'/settings.php';

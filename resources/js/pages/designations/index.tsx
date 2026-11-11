@@ -103,6 +103,10 @@ export default function DesignationIndex({ designations, filters }: Props) {
                     <p className="mt-2 text-sm text-muted-foreground">
                         Create, update and deactivate designations.
                     </p>
+
+                    <a href="/designations/audit" className="mt-4 inline-block underline">
+                        View designation audit history
+                    </a>
                 </div>
 
                 <section className="rounded-lg border p-4">
