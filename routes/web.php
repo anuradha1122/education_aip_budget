@@ -230,6 +230,16 @@ Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
         \App\Http\Controllers\DesignationImportTemplateController::class,
         'download',
     ])->name('designations.import.template');
+
+    Route::get('/designations/import', [
+        \App\Http\Controllers\DesignationImportController::class,
+        'index',
+    ])->name('designations.import.index');
+
+    Route::post('/designations/import/validate', [
+        \App\Http\Controllers\DesignationImportController::class,
+        'validateFile',
+    ])->name('designations.import.validate');
 });
 
 require __DIR__.'/settings.php';

@@ -129,6 +129,13 @@ export default function DesignationIndex({ designations, filters }: Props) {
                         >
                             Download designation import template
                         </a>
+
+                        <a
+                            href="/designations/import"
+                            className="mt-4 inline-block underline"
+                        >
+                            Validate designation import
+                        </a>
                     </div>
                 </div>
 
