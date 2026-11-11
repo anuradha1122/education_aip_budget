@@ -80,6 +80,12 @@ export function AppSidebar() {
             url: '/designations',
             icon: Building2,
         });
+
+        mainNavItems.push({
+            title: 'Officers',
+            url: '/officers',
+            icon: Building2,
+        });
     }
 
     return (
