@@ -70,6 +70,10 @@ The estimate format is based on the applicable circular guidelines.
   links, calculations in the estimate workflow, and the estimate page
   remain to be developed.
 
+- `EstimateService` validates and saves a new estimate and its rows in a
+  database transaction. It calculates and returns the total in integer
+  cents; it does not yet store or display the total.
+
 ## Still to be developed
 
 - Estimate creation, editing, calculations and output.
