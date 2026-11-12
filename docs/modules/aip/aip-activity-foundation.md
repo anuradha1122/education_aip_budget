@@ -11,6 +11,10 @@
 - Database tests cover saving an activity with a financial year and
   rejecting a nonexistent financial year.
 
+- `AipActivityService` validates and trims basic activity fields.
+- The creation service checks that the financial year exists and is open.
+  This check currently applies only to creation through this service.
+
 ## Not yet implemented
 
 - The activity-number uniqueness rule is awaiting confirmation.
@@ -20,3 +24,6 @@
   not yet added.
 - AIP entry, import, allocations, audit history and reports are not yet
   implemented.
+
+- Closed-year restrictions are not yet enforced across all AIP actions.
+  The year-closing workflow and concurrent changes still need review.
