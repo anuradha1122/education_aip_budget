@@ -28,6 +28,11 @@
   checks that both records belong to the same office and rejects duplicate
   pairs.
 
+- When a subject and officer are provided to `AipActivityService`,
+  the service checks that they belong to the same office and that the
+  officer is assigned to the subject. Both IDs are included in the
+  creation audit event.
+
 ## Not yet implemented
 
 - The activity-number uniqueness rule is awaiting confirmation.
@@ -44,10 +49,12 @@
 - Audit recording for updates and an audit history page are not yet
   implemented. The future AIP interface must pass the authenticated actor.
 
-- Officer–subject assignments and same-office validation are not yet
-  implemented. The AIP creation service does not yet save or validate
-  subject and officer references.
-- Vote, fund and activity office relationships remain to be designed.
+- An assignment user interface and assignment audit/history are not yet
+  implemented. AIP update actions still need their own assignment checks.
+- The AIP creation service currently permits both subject and officer to
+  be omitted. Required fields for the final AIP workflow need confirmation.
+- The effect of moving an officer or subject to another office still needs
+  to be handled.
 
 - A user interface, assignment audit/history, and AIP creation checks
   against officer–subject assignments are not yet implemented.

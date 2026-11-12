@@ -23,6 +23,8 @@ class AipActivityService
             'activity_number' => ['required', 'string', 'max:50'],
             'description' => ['required', 'string'],
             'location' => ['nullable', 'string', 'max:255'],
+            'subject_id' => ['nullable', 'integer', 'min:1', 'required_with:officer_id'],
+            'officer_id' => ['nullable', 'integer', 'min:1', 'required_with:subject_id'],
         ])->validate();
 
         return DB::transaction(function () use ($validated, $actor) {
@@ -43,11 +45,37 @@ class AipActivityService
                 ]);
             }
 
+            $subjectId = $validated['subject_id'] ?? null;
+            $officerId = $validated['officer_id'] ?? null;
+
+            if ($subjectId !== null && $officerId !== null) {
+                $officer = DB::table('officers')->where('id', $officerId)->lockForUpdate()->first();
+                $subject = DB::table('subjects')->where('id', $subjectId)->lockForUpdate()->first();
+
+                if ($officer === null) {
+                    throw ValidationException::withMessages(['officer_id' => 'The selected officer does not exist.']);
+                }
+                if ($subject === null) {
+                    throw ValidationException::withMessages(['subject_id' => 'The selected subject does not exist.']);
+                }
+                if ((string) $officer->office_id !== (string) $subject->office_id) {
+                    throw ValidationException::withMessages(['subject_id' => 'The subject and officer must belong to the same office.']);
+                }
+                $assignment = DB::table('officer_subject_assignments')
+                    ->where('officer_id', $officerId)->where('subject_id', $subjectId)
+                    ->lockForUpdate()->first();
+                if ($assignment === null) {
+                    throw ValidationException::withMessages(['subject_id' => 'The officer is not assigned to this subject.']);
+                }
+            }
+
             $activity = AipActivity::create([
                 'financial_year_id' => $year->id,
                 'activity_number' => $validated['activity_number'],
                 'description' => $validated['description'],
                 'location' => ($validated['location'] ?? '') === '' ? null : $validated['location'],
+                'subject_id' => $subjectId,
+                'officer_id' => $officerId,
             ]);
 
             DB::table('aip_activity_audit_events')->insert([
@@ -59,6 +87,8 @@ class AipActivityService
                     'activity_number' => $activity->activity_number,
                     'description' => $activity->description,
                     'location' => $activity->location,
+                    'subject_id' => $activity->subject_id,
+                    'officer_id' => $activity->officer_id,
                 ], JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR),
                 'created_at' => now(),
                 'updated_at' => now(),
