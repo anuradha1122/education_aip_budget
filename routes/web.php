@@ -395,6 +395,21 @@ Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
         \App\Http\Controllers\EstimateCircularSettingsController::class,
         'update',
     ])->name('estimate-circular-settings.update');
+
+    Route::get('/estimates/create', [
+        \App\Http\Controllers\EstimateController::class,
+        'create',
+    ])->name('estimates.create');
+
+    Route::post('/estimates', [
+        \App\Http\Controllers\EstimateController::class,
+        'store',
+    ])->name('estimates.store');
+
+    Route::get('/estimates/{id}', [
+        \App\Http\Controllers\EstimateController::class,
+        'show',
+    ])->name('estimates.show');
 });
 
 require __DIR__.'/settings.php';

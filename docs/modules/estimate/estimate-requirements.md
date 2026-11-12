@@ -74,6 +74,11 @@ The estimate format is based on the applicable circular guidelines.
   database transaction. It calculates and returns the total in integer
   cents; it does not yet store or display the total.
 
+- An initial estimate entry page allows users with the
+  `manage-master-data` permission to add and remove rows, edit the
+  circular paragraph, preview a total, and save and view an estimate.
+  The server validates the input and calculates the total again on save.
+
 ## Still to be developed
 
 - Estimate creation, editing, calculations and output.
