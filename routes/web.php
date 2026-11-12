@@ -310,6 +310,11 @@ Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
         \App\Http\Controllers\ProgrammeTypeController::class,
         'update',
     ])->name('programme-types.update');
+
+    Route::get('/programme-types/audit', [
+        \App\Http\Controllers\ProgrammeTypeAuditController::class,
+        'index',
+    ])->name('programme-types.audit');
 });
 
 require __DIR__.'/settings.php';

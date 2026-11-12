@@ -14,8 +14,8 @@ actor when provided and the previous and new values. An unchanged type
 does not produce an update event. The change and audit event are saved in
 the same transaction.
 
-The management page is available through the sidebar to users with master
-data management permission. An audit history page is future work.
+The management page, sidebar link, and audit history page are available
+to users with master data management permission.
 
 ## Testing
 
@@ -25,3 +25,4 @@ data management permission. An audit history page is future work.
     php artisan test --filter=ProgrammeTypeManagementTest
     npx tsc --noEmit
     npm run build
+    php artisan test --filter=ProgrammeTypeAuditHistoryTest

@@ -106,6 +106,10 @@ export default function ProgrammeTypeIndex({
                     <p className="mt-2 text-sm text-muted-foreground">
                         Create, update and deactivate programme types.
                     </p>
+
+                    <a href="/programme-types/audit" className="mt-4 inline-block underline">
+                        View programme type audit history
+                    </a>
                 </div>
 
                 <section className="rounded-lg border p-4">
