@@ -345,6 +345,26 @@ Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
         \App\Http\Controllers\ProgrammeTypeImportController::class,
         'store',
     ])->name('programme-types.import.store');
+
+    Route::get('/expense-categories', [
+        \App\Http\Controllers\ExpenseCategoryController::class,
+        'index',
+    ])->name('expense-categories.index');
+
+    Route::post('/expense-categories', [
+        \App\Http\Controllers\ExpenseCategoryController::class,
+        'store',
+    ])->name('expense-categories.store');
+
+    Route::put('/expense-categories/{expenseCategory}', [
+        \App\Http\Controllers\ExpenseCategoryController::class,
+        'update',
+    ])->name('expense-categories.update');
+
+    Route::get('/expense-categories/import/template', [
+        \App\Http\Controllers\ExpenseCategoryImportTemplateController::class,
+        'download',
+    ])->name('expense-categories.import.template');
 });
 
 require __DIR__.'/settings.php';
