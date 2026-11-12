@@ -94,6 +94,14 @@ export function AppSidebar() {
         });
     }
 
+    if (permissions?.manage_master_data) {
+        mainNavItems.push({
+            title: 'Expense Categories',
+            url: '/expense-categories',
+            icon: LayoutGrid,
+        });
+    }
+
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>

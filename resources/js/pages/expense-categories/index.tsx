@@ -104,15 +104,18 @@ export default function ExpenseCategoryIndex({ categories, filters }: Props) {
                         Create, update and deactivate expense categories.
                     </p>
 
-                    <div>
+                    <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
                         <a
                             href="/expense-categories/import/template"
-                            className="mt-4 inline-block underline"
+                            className="underline"
                         >
                             Download expense category import template
                         </a>
 
-                        <a href="/expense-categories/import" className="underline">
+                        <a
+                            href="/expense-categories/import"
+                            className="underline"
+                        >
                             Validate expense category import
                         </a>
                     </div>

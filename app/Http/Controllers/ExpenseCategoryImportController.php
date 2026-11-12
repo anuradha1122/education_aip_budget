@@ -3,7 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\ExpenseCategory;
+use App\Services\ExpenseCategoryService;
+use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -32,9 +36,88 @@ class ExpenseCategoryImportController extends Controller
 
     public function validateFile(Request $request): Response
     {
+        $request->session()->forget('expense_category_import_review');
+
+        $result = $this->readWorkbook($request);
+
+        if ($result['invalid'] === 0) {
+            $request->session()->put('expense_category_import_review', [
+                'user_id' => $request->user()->id,
+                'hash' => hash_file(
+                    'sha256',
+                    $request->file('file')->getRealPath()
+                ),
+            ]);
+        }
+
         return Inertia::render('expense-categories/import', [
-            'result' => $this->readWorkbook($request),
+            'result' => $result,
         ]);
+    }
+
+    public function store(
+        Request $request,
+        ExpenseCategoryService $expenseCategoryService
+    ): RedirectResponse {
+        $request->validate([
+            'file' => ['required', 'file', 'mimes:xlsx', 'max:2048'],
+        ]);
+
+        $review = $request->session()->get('expense_category_import_review');
+
+        $fileHash = hash_file(
+            'sha256',
+            $request->file('file')->getRealPath()
+        );
+
+        if (
+            ! is_array($review)
+            || ($review['user_id'] ?? null) !== $request->user()->id
+            || ! isset($review['hash'])
+            || ! hash_equals($review['hash'], $fileHash)
+        ) {
+            throw ValidationException::withMessages([
+                'file' => 'The selected file has changed or has not been reviewed. Validate it again before importing.',
+            ]);
+        }
+
+        $result = $this->readWorkbook($request);
+
+        if ($result['invalid'] > 0) {
+            $request->session()->forget('expense_category_import_review');
+
+            throw ValidationException::withMessages([
+                'file' => 'The workbook is no longer valid. Validate it again to see the errors.',
+            ]);
+        }
+
+        try {
+            DB::transaction(function () use ($result, $expenseCategoryService, $request) {
+                foreach ($result['rows'] as $row) {
+                    $expenseCategoryService->create([
+                        'code' => $row['code'],
+                        'name' => $row['name'],
+                        'is_active' => $row['status'] === 'active',
+                    ], $request->user());
+                }
+            });
+        } catch (UniqueConstraintViolationException $exception) {
+            $request->session()->forget('expense_category_import_review');
+
+            throw ValidationException::withMessages([
+                'file' => 'An expense category code already exists. Validate the workbook again.',
+            ]);
+        } catch (ValidationException $exception) {
+            $request->session()->forget('expense_category_import_review');
+
+            throw ValidationException::withMessages([
+                'file' => 'An expense category could not be imported. Validate the workbook again.',
+            ]);
+        }
+
+        $request->session()->forget('expense_category_import_review');
+
+        return redirect()->route('expense-categories.index');
     }
 
     private function readWorkbook(Request $request): array

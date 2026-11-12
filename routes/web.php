@@ -375,6 +375,11 @@ Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
         \App\Http\Controllers\ExpenseCategoryImportController::class,
         'validateFile',
     ])->name('expense-categories.import.validate');
+
+    Route::post('/expense-categories/import', [
+        \App\Http\Controllers\ExpenseCategoryImportController::class,
+        'store',
+    ])->name('expense-categories.import.store');
 });
 
 require __DIR__.'/settings.php';
