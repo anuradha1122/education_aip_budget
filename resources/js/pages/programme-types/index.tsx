@@ -119,6 +119,10 @@ export default function ProgrammeTypeIndex({
                         <a href="/programme-types/export/pdf" className="underline">
                             Download programme type list (PDF)
                         </a>
+
+                        <a href="/programme-types/import/template" className="underline">
+                            Download programme type import template
+                        </a>
                     </div>
                 </div>
 

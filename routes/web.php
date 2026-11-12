@@ -325,6 +325,11 @@ Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
         \App\Http\Controllers\ProgrammeTypePdfExportController::class,
         'download',
     ])->name('programme-types.export.pdf');
+
+    Route::get('/programme-types/import/template', [
+        \App\Http\Controllers\ProgrammeTypeImportTemplateController::class,
+        'download',
+    ])->name('programme-types.import.template');
 });
 
 require __DIR__.'/settings.php';
