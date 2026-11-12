@@ -141,6 +141,10 @@ export default function OfficerIndex({
                         <a href="/officers/import/template" className="underline">
                             Download officer import template
                         </a>
+
+                        <a href="/officers/import" className="underline">
+                            Validate officer import
+                        </a>
                     </div>
                 </div>
 

@@ -280,6 +280,16 @@ Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
         \App\Http\Controllers\OfficerImportTemplateController::class,
         'download',
     ])->name('officers.import.template');
+
+    Route::get('/officers/import', [
+        \App\Http\Controllers\OfficerImportController::class,
+        'index',
+    ])->name('officers.import.index');
+
+    Route::post('/officers/import/validate', [
+        \App\Http\Controllers\OfficerImportController::class,
+        'validateFile',
+    ])->name('officers.import.validate');
 });
 
 require __DIR__.'/settings.php';
