@@ -315,6 +315,11 @@ Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
         \App\Http\Controllers\ProgrammeTypeAuditController::class,
         'index',
     ])->name('programme-types.audit');
+
+    Route::get('/programme-types/export/excel', [
+        \App\Http\Controllers\ProgrammeTypeExportController::class,
+        'excel',
+    ])->name('programme-types.export.excel');
 });
 
 require __DIR__.'/settings.php';

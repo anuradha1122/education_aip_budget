@@ -107,9 +107,15 @@ export default function ProgrammeTypeIndex({
                         Create, update and deactivate programme types.
                     </p>
 
-                    <a href="/programme-types/audit" className="mt-4 inline-block underline">
-                        View programme type audit history
-                    </a>
+                    <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2">
+                        <a href="/programme-types/audit" className="underline">
+                            View programme type audit history
+                        </a>
+
+                        <a href="/programme-types/export/excel" className="underline">
+                            Download programme type list (Excel)
+                        </a>
+                    </div>
                 </div>
 
                 <section className="rounded-lg border p-4">
