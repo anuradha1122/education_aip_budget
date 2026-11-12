@@ -270,6 +270,11 @@ Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
         \App\Http\Controllers\OfficerExportController::class,
         'excel',
     ])->name('officers.export.excel');
+
+    Route::get('/officers/export/pdf', [
+        \App\Http\Controllers\OfficerPdfExportController::class,
+        'download',
+    ])->name('officers.export.pdf');
 });
 
 require __DIR__.'/settings.php';
