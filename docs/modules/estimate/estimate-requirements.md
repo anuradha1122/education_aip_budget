@@ -61,6 +61,10 @@ The estimate format is based on the applicable circular guidelines.
 - The settings page has been checked in the browser for saving and
   retaining entered text after refresh.
 
+- `EstimateCalculationService` calculates line amounts and totals using
+  integer cents. The current line calculation supports whole units and
+  people; fractional quantities and other rules remain to be confirmed.
+
 ## Still to be developed
 
 - Estimate creation, editing, calculations and output.
