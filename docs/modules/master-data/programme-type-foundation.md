@@ -1,11 +1,11 @@
-# Programme type foundation
+# Programme type management
 
-The programme_types table stores a programme type code, name, and active
-status. Programme type codes are unique. Programme types can be marked
-inactive without deleting their records.
+Users with master data management permission can create, search, edit,
+activate, and deactivate programme types. Each type has a unique code,
+name, and status.
 
-The programme type service trims names, converts codes to uppercase,
-validates required fields, and rejects duplicate codes.
+The service trims names, converts codes to uppercase, validates required
+fields, and rejects duplicate codes. Deactivation retains the record.
 
 ## Audit recording
 
@@ -14,10 +14,13 @@ actor when provided and the previous and new values. An unchanged type
 does not produce an update event. The change and audit event are saved in
 the same transaction.
 
-Management screens and an audit history page are future work.
+Sidebar navigation and an audit history page are future work.
 
 ## Testing
 
     php artisan test --filter=ProgrammeTypeDatabaseTest
     php artisan test --filter=ProgrammeTypeServiceTest
     php artisan test --filter=ProgrammeTypeAuditTest
+    php artisan test --filter=ProgrammeTypeManagementTest
+    npx tsc --noEmit
+    npm run build

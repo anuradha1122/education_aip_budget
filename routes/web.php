@@ -295,6 +295,21 @@ Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
         \App\Http\Controllers\OfficerImportController::class,
         'store',
     ])->name('officers.import.store');
+
+    Route::get('/programme-types', [
+        \App\Http\Controllers\ProgrammeTypeController::class,
+        'index',
+    ])->name('programme-types.index');
+
+    Route::post('/programme-types', [
+        \App\Http\Controllers\ProgrammeTypeController::class,
+        'store',
+    ])->name('programme-types.store');
+
+    Route::put('/programme-types/{programmeType}', [
+        \App\Http\Controllers\ProgrammeTypeController::class,
+        'update',
+    ])->name('programme-types.update');
 });
 
 require __DIR__.'/settings.php';
