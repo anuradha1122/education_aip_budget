@@ -86,6 +86,12 @@ export function AppSidebar() {
             url: '/officers',
             icon: Building2,
         });
+
+        mainNavItems.push({
+            title: 'Programme types',
+            url: '/programme-types',
+            icon: Building2,
+        });
     }
 
     return (

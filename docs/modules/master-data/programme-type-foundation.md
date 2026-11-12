@@ -14,7 +14,8 @@ actor when provided and the previous and new values. An unchanged type
 does not produce an update event. The change and audit event are saved in
 the same transaction.
 
-Sidebar navigation and an audit history page are future work.
+The management page is available through the sidebar to users with master
+data management permission. An audit history page is future work.
 
 ## Testing
 
