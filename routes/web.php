@@ -275,6 +275,11 @@ Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
         \App\Http\Controllers\OfficerPdfExportController::class,
         'download',
     ])->name('officers.export.pdf');
+
+    Route::get('/officers/import/template', [
+        \App\Http\Controllers\OfficerImportTemplateController::class,
+        'download',
+    ])->name('officers.import.template');
 });
 
 require __DIR__.'/settings.php';

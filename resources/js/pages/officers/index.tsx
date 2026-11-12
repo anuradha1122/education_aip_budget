@@ -137,6 +137,10 @@ export default function OfficerIndex({
                         <a href="/officers/export/pdf" className="underline">
                             Download officer list (PDF)
                         </a>
+
+                        <a href="/officers/import/template" className="underline">
+                            Download officer import template
+                        </a>
                     </div>
                 </div>
 
