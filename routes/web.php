@@ -320,6 +320,11 @@ Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
         \App\Http\Controllers\ProgrammeTypeExportController::class,
         'excel',
     ])->name('programme-types.export.excel');
+
+    Route::get('/programme-types/export/pdf', [
+        \App\Http\Controllers\ProgrammeTypePdfExportController::class,
+        'download',
+    ])->name('programme-types.export.pdf');
 });
 
 require __DIR__.'/settings.php';
