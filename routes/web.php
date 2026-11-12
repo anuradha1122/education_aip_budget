@@ -385,6 +385,16 @@ Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
         \App\Http\Controllers\ExpenseCategoryAuditController::class,
         'index',
     ])->name('expense-categories.audit');
+
+    Route::get('/estimate-circular-settings', [
+        \App\Http\Controllers\EstimateCircularSettingsController::class,
+        'index',
+    ])->name('estimate-circular-settings.index');
+
+    Route::put('/estimate-circular-settings', [
+        \App\Http\Controllers\EstimateCircularSettingsController::class,
+        'update',
+    ])->name('estimate-circular-settings.update');
 });
 
 require __DIR__.'/settings.php';

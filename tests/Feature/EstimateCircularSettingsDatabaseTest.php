@@ -49,4 +49,22 @@ class EstimateCircularSettingsDatabaseTest extends TestCase
             'rule_paragraph' => 'Updated example paragraph.',
         ]);
     }
+
+    public function test_circular_rule_preserves_multiple_languages_and_line_breaks(): void
+    {
+        $paragraph = "සිංහල උදාහරණයක්\nதமிழ் எடுத்துக்காட்டு\nEnglish example";
+
+        $id = DB::table('estimate_circular_settings')->insertGetId([
+            'circular_number' => 'EXAMPLE-01',
+            'rule_paragraph' => $paragraph,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $saved = DB::table('estimate_circular_settings')
+            ->where('id', $id)
+            ->first();
+
+        $this->assertSame($paragraph, $saved->rule_paragraph);
+    }
 }
