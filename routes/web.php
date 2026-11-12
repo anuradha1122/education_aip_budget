@@ -380,6 +380,11 @@ Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
         \App\Http\Controllers\ExpenseCategoryImportController::class,
         'store',
     ])->name('expense-categories.import.store');
+
+    Route::get('/expense-categories/audit', [
+        \App\Http\Controllers\ExpenseCategoryAuditController::class,
+        'index',
+    ])->name('expense-categories.audit');
 });
 
 require __DIR__.'/settings.php';

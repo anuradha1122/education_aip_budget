@@ -118,6 +118,10 @@ export default function ExpenseCategoryIndex({ categories, filters }: Props) {
                         >
                             Validate expense category import
                         </a>
+
+                        <a href="/expense-categories/audit" className="underline">
+                            View audit history
+                        </a>
                     </div>
                 </div>
 
