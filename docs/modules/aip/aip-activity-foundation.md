@@ -22,6 +22,12 @@
 - AIP activities can optionally reference an existing subject and officer
   at the database and model level.
 
+- `officer_subject_assignments` stores officer–subject pairs.
+- Through `OfficerSubjectAssignmentService`, an officer can be assigned
+  multiple subjects and a subject can have multiple officers. The service
+  checks that both records belong to the same office and rejects duplicate
+  pairs.
+
 ## Not yet implemented
 
 - The activity-number uniqueness rule is awaiting confirmation.
@@ -42,3 +48,9 @@
   implemented. The AIP creation service does not yet save or validate
   subject and officer references.
 - Vote, fund and activity office relationships remain to be designed.
+
+- A user interface, assignment audit/history, and AIP creation checks
+  against officer–subject assignments are not yet implemented.
+- The effect of moving an officer or subject to another office still needs
+  to be handled; the same-office check currently applies when assigning
+  through the service.
