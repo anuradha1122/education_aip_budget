@@ -15,6 +15,10 @@
 - The creation service checks that the financial year exists and is open.
   This check currently applies only to creation through this service.
 
+- Activity creation through `AipActivityService` records an audit event
+  in the same database transaction. The event includes the actor when
+  provided and the created values.
+
 ## Not yet implemented
 
 - The activity-number uniqueness rule is awaiting confirmation.
@@ -27,3 +31,6 @@
 
 - Closed-year restrictions are not yet enforced across all AIP actions.
   The year-closing workflow and concurrent changes still need review.
+
+- Audit recording for updates and an audit history page are not yet
+  implemented. The future AIP interface must pass the authenticated actor.

@@ -3,13 +3,14 @@
 namespace App\Services;
 
 use App\Models\AipActivity;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
 class AipActivityService
 {
-    public function create(array $input): AipActivity
+    public function create(array $input, ?User $actor = null): AipActivity
     {
         foreach (['activity_number', 'description', 'location'] as $field) {
             if (isset($input[$field]) && is_string($input[$field])) {
@@ -24,7 +25,7 @@ class AipActivityService
             'location' => ['nullable', 'string', 'max:255'],
         ])->validate();
 
-        return DB::transaction(function () use ($validated) {
+        return DB::transaction(function () use ($validated, $actor) {
             $year = DB::table('financial_years')
                 ->where('id', $validated['financial_year_id'])
                 ->lockForUpdate()
@@ -42,12 +43,28 @@ class AipActivityService
                 ]);
             }
 
-            return AipActivity::create([
+            $activity = AipActivity::create([
                 'financial_year_id' => $year->id,
                 'activity_number' => $validated['activity_number'],
                 'description' => $validated['description'],
                 'location' => ($validated['location'] ?? '') === '' ? null : $validated['location'],
             ]);
+
+            DB::table('aip_activity_audit_events')->insert([
+                'aip_activity_id' => $activity->id,
+                'actor_id' => $actor?->id,
+                'action' => 'created',
+                'new_values' => json_encode([
+                    'financial_year_id' => $activity->financial_year_id,
+                    'activity_number' => $activity->activity_number,
+                    'description' => $activity->description,
+                    'location' => $activity->location,
+                ], JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            return $activity;
         });
     }
 }
