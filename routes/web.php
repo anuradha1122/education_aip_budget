@@ -365,6 +365,16 @@ Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
         \App\Http\Controllers\ExpenseCategoryImportTemplateController::class,
         'download',
     ])->name('expense-categories.import.template');
+
+    Route::get('/expense-categories/import', [
+        \App\Http\Controllers\ExpenseCategoryImportController::class,
+        'index',
+    ])->name('expense-categories.import.index');
+
+    Route::post('/expense-categories/import/validate', [
+        \App\Http\Controllers\ExpenseCategoryImportController::class,
+        'validateFile',
+    ])->name('expense-categories.import.validate');
 });
 
 require __DIR__.'/settings.php';
