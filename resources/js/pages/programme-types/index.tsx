@@ -123,6 +123,10 @@ export default function ProgrammeTypeIndex({
                         <a href="/programme-types/import/template" className="underline">
                             Download programme type import template
                         </a>
+
+                        <a href="/programme-types/import" className="underline">
+                            Validate programme type import
+                        </a>
                     </div>
                 </div>
 

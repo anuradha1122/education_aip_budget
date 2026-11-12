@@ -1,7 +1,7 @@
-# Programme type import template
+# Programme type import template and validation
 
 Users with master data management permission can download a blank Excel
-template from the Programme types page.
+template and validate a completed workbook from the Programme types page.
 
 The template contains:
 
@@ -9,13 +9,18 @@ The template contains:
 - Programme type name
 - Status
 
-Downloading the template does not validate or save programme types.
-Validation and importing will be added separately.
+The workbook must be XLSX, no larger than 2 MB, and contain no more than
+500 data rows. Validation checks required fields, status, duplicate codes,
+and codes that already exist in the system.
+
+Validation displays row errors without saving programme types. Importing
+reviewed programme types will be added separately.
 
 ## Testing
 
     php artisan test --filter=ProgrammeTypeImportTemplateTest
+    php artisan test --filter=ProgrammeTypeImportValidationTest
     npx tsc --noEmit
     npm run build
 
-Download the workbook and check the headings and blank data row.
+In the browser, validate workbooks containing valid and invalid rows.

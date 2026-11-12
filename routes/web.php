@@ -330,6 +330,16 @@ Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
         \App\Http\Controllers\ProgrammeTypeImportTemplateController::class,
         'download',
     ])->name('programme-types.import.template');
+
+    Route::get('/programme-types/import', [
+        \App\Http\Controllers\ProgrammeTypeImportController::class,
+        'index',
+    ])->name('programme-types.import.index');
+
+    Route::post('/programme-types/import/validate', [
+        \App\Http\Controllers\ProgrammeTypeImportController::class,
+        'validateFile',
+    ])->name('programme-types.import.validate');
 });
 
 require __DIR__.'/settings.php';
