@@ -109,6 +109,28 @@ class OfficerImportValidationTest extends TestCase
         $this->assertDatabaseCount('officer_audit_events', 0);
     }
 
+    public function test_a_name_containing_only_numbers_is_invalid(): void
+    {
+        $this->office();
+        $this->designation();
+
+        $file = $this->workbook([
+            ['123', 'OFF-01', 'DES-01', 'active'],
+        ]);
+
+        $this->actingAs($this->administrator())
+            ->post('/officers/import/validate', ['file' => $file])
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('officers/import')
+                ->where('result.total', 1)
+                ->where('result.invalid', 1)
+                ->has('result.rows.0.errors', 1)
+            );
+
+        $this->assertDatabaseCount('officers', 0);
+    }
+
     private function office(): Office
     {
         return Office::create([

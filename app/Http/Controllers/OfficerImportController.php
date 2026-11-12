@@ -172,7 +172,12 @@ class OfficerImportController extends Controller
                     'designation_code' => $designationCode,
                     'status' => $status,
                 ], [
-                    'name' => ['required', 'string', 'max:255'],
+                    'name' => [
+                        'required',
+                        'string',
+                        'max:255',
+                        'not_regex:/^[\p{N}\s]+$/u',
+                    ],
                     'office_code' => ['required', 'string'],
                     'designation_code' => ['required', 'string'],
                     'status' => [

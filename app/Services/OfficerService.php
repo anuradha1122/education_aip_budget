@@ -109,6 +109,7 @@ class OfficerService
                 'required',
                 'string',
                 'max:255',
+                'not_regex:/^[\p{N}\s]+$/u',
             ],
             'is_active' => [
                 'required',

@@ -20,6 +20,8 @@ establish that the records belong to the same person.
 
 Validation does not save officers. Reviewed import will be added separately.
 
+Validation rejects officer names containing only numbers.
+
 ## Testing
 
     php artisan test --filter=OfficerImportTemplateTest

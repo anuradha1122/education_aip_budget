@@ -8,6 +8,8 @@ The officer service trims the name and validates required fields. The office
 and designation must exist. Inactive offices and designations are currently
 available for selection and are labelled inactive.
 
+Officer names containing only numbers are rejected.
+
 ## Audit recording
 
 The service records officer creation and updates, including the actor when

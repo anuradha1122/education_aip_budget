@@ -115,6 +115,18 @@ class OfficerServiceTest extends TestCase
         $this->assertDatabaseCount('officers', 1);
     }
 
+    public function test_it_rejects_a_name_containing_only_numbers(): void
+    {
+        $this->expectException(ValidationException::class);
+
+        app(OfficerService::class)->create([
+            'office_id' => $this->office()->id,
+            'designation_id' => $this->designation()->id,
+            'name' => '123',
+            'is_active' => true,
+        ]);
+    }
+
     private function office(): Office
     {
         return Office::create([
