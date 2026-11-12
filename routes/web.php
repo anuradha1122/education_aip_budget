@@ -290,6 +290,11 @@ Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
         \App\Http\Controllers\OfficerImportController::class,
         'validateFile',
     ])->name('officers.import.validate');
+
+    Route::post('/officers/import', [
+        \App\Http\Controllers\OfficerImportController::class,
+        'store',
+    ])->name('officers.import.store');
 });
 
 require __DIR__.'/settings.php';

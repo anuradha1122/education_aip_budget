@@ -1,7 +1,7 @@
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, useForm } from '@inertiajs/react';
-import { type FormEvent } from 'react';
+import { type FormEvent, useState } from 'react';
 
 type ImportRow = {
     row: number;
@@ -28,6 +28,11 @@ type UploadForm = {
     file: File | null;
 };
 
+type ImportForm = {
+    file: File | null;
+    acknowledge_warnings: boolean;
+};
+
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
     { title: 'Officers', href: '/officers' },
@@ -39,11 +44,29 @@ export default function OfficerImport({ result }: Props) {
         file: null,
     });
 
+    const [reviewedFile, setReviewedFile] = useState<File | null>(null);
+    const [acknowledged, setAcknowledged] = useState(false);
+    const importForm = useForm<ImportForm>({ file: null, acknowledge_warnings: false });
+
     function submit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
 
+        setReviewedFile(null);
+        setAcknowledged(false);
+        importForm.clearErrors();
+        const selectedFile = data.file;
         post('/officers/import/validate', {
             forceFormData: true,
+            onSuccess: () => setReviewedFile(selectedFile),
+        });
+    }
+
+    function importOfficers() {
+        if (!reviewedFile || reviewedFile !== data.file || !result || result.invalid !== 0 || (result.warnings > 0 && !acknowledged)) return;
+        importForm.transform(() => ({ file: reviewedFile, acknowledge_warnings: acknowledged }));
+        importForm.post('/officers/import', {
+            forceFormData: true,
+            onError: () => { setReviewedFile(null); setAcknowledged(false); },
         });
     }
 
@@ -85,10 +108,13 @@ export default function OfficerImport({ result }: Props) {
                         id="file"
                         type="file"
                         accept=".xlsx"
-                        onChange={(event) =>
-                            setData('file', event.target.files?.[0] ?? null)
-                        }
-                        disabled={processing}
+                        onChange={(event) => {
+                            setReviewedFile(null);
+                            setAcknowledged(false);
+                            importForm.clearErrors();
+                            setData('file', event.target.files?.[0] ?? null);
+                        }}
+                        disabled={processing || importForm.processing}
                         required
                     />
 
@@ -110,7 +136,7 @@ export default function OfficerImport({ result }: Props) {
                     <div>
                         <button
                             type="submit"
-                            disabled={processing || !data.file}
+                            disabled={processing || importForm.processing || !data.file}
                             className="rounded-md bg-primary px-4 py-2 text-primary-foreground disabled:opacity-50"
                         >
                             {processing ? 'Checking...' : 'Validate file'}
@@ -138,6 +164,29 @@ export default function OfficerImport({ result }: Props) {
                             A warning indicates a possible match, not
                             necessarily the same person. Review it carefully.
                         </p>
+
+                        {(importForm.errors.file || importForm.errors.acknowledge_warnings) && (
+                            <p role="alert" className="mt-3 text-sm text-red-600">
+                                {importForm.errors.file || importForm.errors.acknowledge_warnings}
+                            </p>
+                        )}
+
+                        {result.invalid === 0 && reviewedFile !== null && reviewedFile === data.file && (
+                            <div className="mt-4 flex flex-col items-start gap-3">
+                                {result.warnings > 0 && (
+                                    <label className="flex items-start gap-2 text-sm">
+                                        <input type="checkbox" checked={acknowledged}
+                                            onChange={(event) => setAcknowledged(event.target.checked)} />
+                                        I have reviewed the possible duplicate warnings and want to import these rows.
+                                    </label>
+                                )}
+                                <button type="button" onClick={importOfficers}
+                                    disabled={processing || importForm.processing || (result.warnings > 0 && !acknowledged)}
+                                    className="rounded-md bg-primary px-4 py-2 text-primary-foreground disabled:opacity-50">
+                                    {importForm.processing ? 'Importing...' : 'Import officers'}
+                                </button>
+                            </div>
+                        )}
 
                         <div className="mt-4 overflow-x-auto">
                             <table className="w-full text-left text-sm">

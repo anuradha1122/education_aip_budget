@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Designation;
 use App\Models\Office;
 use App\Models\Officer;
+use App\Services\OfficerService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -34,6 +37,91 @@ class OfficerImportController extends Controller
     }
 
     public function validateFile(Request $request): Response
+    {
+        $request->session()->forget('officer_import_review');
+        $result = $this->readWorkbook($request);
+
+        if ($result['invalid'] === 0) {
+            $request->session()->put('officer_import_review', [
+                'user_id' => $request->user()->id,
+                'hash' => hash_file('sha256', $request->file('file')->getRealPath()),
+                'review_hash' => $this->reviewHash($result),
+            ]);
+        }
+
+        return Inertia::render('officers/import', ['result' => $result]);
+    }
+
+    public function store(Request $request, OfficerService $service): RedirectResponse
+    {
+        $request->validate([
+            'file' => ['required', 'file', 'mimes:xlsx', 'max:2048'],
+            'acknowledge_warnings' => ['sometimes', 'boolean'],
+        ]);
+
+        $review = $request->session()->pull('officer_import_review');
+        $hash = hash_file('sha256', $request->file('file')->getRealPath());
+
+        if (! is_array($review)
+            || ($review['user_id'] ?? null) !== $request->user()->id
+            || ! is_string($review['hash'] ?? null)
+            || ! hash_equals($review['hash'], $hash)) {
+            throw ValidationException::withMessages([
+                'file' => 'The selected file has changed or has not been reviewed. Validate it again before importing.',
+            ]);
+        }
+
+        try {
+            DB::transaction(function () use ($request, $review, $service) {
+                $result = $this->readWorkbook($request);
+
+                if ($result['invalid'] > 0
+                    || ! is_string($review['review_hash'] ?? null)
+                    || ! hash_equals($review['review_hash'], $this->reviewHash($result))) {
+                    throw ValidationException::withMessages([
+                        'file' => 'The validation results have changed. Validate the workbook again before importing.',
+                    ]);
+                }
+
+                if ($result['warnings'] > 0 && ! $request->boolean('acknowledge_warnings')) {
+                    throw ValidationException::withMessages([
+                        'acknowledge_warnings' => 'Review and acknowledge the possible duplicate warnings before importing.',
+                    ]);
+                }
+
+                foreach ($result['rows'] as $row) {
+                    $office = Office::query()->lockForUpdate()->find($row['office_id']);
+                    $designation = Designation::query()->lockForUpdate()->find($row['designation_id']);
+
+                    if (! $office || ! $designation
+                        || mb_strtoupper(trim($office->code)) !== $row['office_code']
+                        || mb_strtoupper(trim($designation->code)) !== $row['designation_code']) {
+                        throw ValidationException::withMessages([
+                            'file' => 'An office or designation has changed. Validate the workbook again.',
+                        ]);
+                    }
+
+                    $service->create([
+                        'name' => $row['name'],
+                        'office_id' => $row['office_id'],
+                        'designation_id' => $row['designation_id'],
+                        'is_active' => $row['status'] === 'active',
+                    ], $request->user());
+                }
+            });
+        } catch (ValidationException $exception) {
+            throw $exception;
+        }
+
+        return redirect()->route('officers.index');
+    }
+
+    private function reviewHash(array $result): string
+    {
+        return hash('sha256', json_encode($result, JSON_THROW_ON_ERROR));
+    }
+
+    private function readWorkbook(Request $request): array
     {
         $request->validate([
             'file' => ['required', 'file', 'mimes:xlsx', 'max:2048'],
@@ -219,6 +307,8 @@ class OfficerImportController extends Controller
                 }
 
                 $rows[] = [
+                    'office_id' => $officeId,
+                    'designation_id' => $designationId,
                     'row' => $rowNumber,
                     'name' => $name,
                     'office_code' => $officeCode,
@@ -245,14 +335,12 @@ class OfficerImportController extends Controller
                 fn ($row) => count($row['warnings']) > 0
             ));
 
-            return Inertia::render('officers/import', [
-                'result' => [
-                    'rows' => $rows,
-                    'total' => count($rows),
-                    'invalid' => $invalidCount,
-                    'warnings' => $warningCount,
-                ],
-            ]);
+            return [
+                'rows' => $rows,
+                'total' => count($rows),
+                'invalid' => $invalidCount,
+                'warnings' => $warningCount,
+            ];
         } finally {
             $spreadsheet->disconnectWorksheets();
         }
