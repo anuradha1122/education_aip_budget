@@ -63,7 +63,7 @@ class AipActivityService
                 }
                 $assignment = DB::table('officer_subject_assignments')
                     ->where('officer_id', $officerId)->where('subject_id', $subjectId)
-                    ->lockForUpdate()->first();
+                    ->whereNull('ended_at')->lockForUpdate()->first();
                 if ($assignment === null) {
                     throw ValidationException::withMessages(['subject_id' => 'The officer is not assigned to this subject.']);
                 }

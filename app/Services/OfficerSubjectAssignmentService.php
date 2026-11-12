@@ -56,4 +56,39 @@ class OfficerSubjectAssignmentService
             throw ValidationException::withMessages(['subject_id' => 'This officer is already assigned to this subject.']);
         }
     }
+    public function end(int $assignmentId, ?User $actor = null): void
+    {
+        DB::transaction(function () use ($assignmentId, $actor) {
+            // Match the lock order used when creating an assignment.
+            $reference = DB::table('officer_subject_assignments')->where('id', $assignmentId)->first();
+            if ($reference === null) {
+                throw ValidationException::withMessages(['assignment' => 'The assignment does not exist.']);
+            }
+            DB::table('officers')->where('id', $reference->officer_id)->lockForUpdate()->first();
+            DB::table('subjects')->where('id', $reference->subject_id)->lockForUpdate()->first();
+            $assignment = DB::table('officer_subject_assignments')->where('id', $assignmentId)->lockForUpdate()->first();
+            if ($assignment === null || $assignment->ended_at !== null) {
+                throw ValidationException::withMessages(['assignment' => 'This assignment has already ended or no longer exists.']);
+            }
+
+            // Use the recorded assignment office where available; earlier records may lack an event.
+            $officeId = DB::table('officer_subject_assignment_audit_events')
+                ->where('assignment_id', $assignmentId)->where('action', 'assigned')->orderBy('id')->value('office_id');
+            if ($officeId === null) {
+                $officer = DB::table('officers')->where('id', $assignment->officer_id)->first();
+                $officeId = $officer->office_id;
+            }
+            $now = now();
+            DB::table('officer_subject_assignments')->where('id', $assignmentId)->update([
+                'ended_at' => $now, 'active_marker' => null, 'updated_at' => $now,
+            ]);
+            DB::table('officer_subject_assignment_audit_events')->insert([
+                'assignment_id' => $assignmentId, 'actor_id' => $actor?->id,
+                'action' => 'ended', 'officer_id' => $assignment->officer_id,
+                'subject_id' => $assignment->subject_id, 'office_id' => $officeId,
+                'created_at' => $now, 'updated_at' => $now,
+            ]);
+        });
+    }
+
 }

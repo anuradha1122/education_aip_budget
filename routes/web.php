@@ -410,6 +410,21 @@ Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
         \App\Http\Controllers\EstimateController::class,
         'show',
     ])->name('estimates.show');
+
+    Route::get('/officer-subject-assignments', [
+        \App\Http\Controllers\OfficerSubjectAssignmentController::class,
+        'index',
+    ])->name('officer-subject-assignments.index');
+
+    Route::post('/officer-subject-assignments', [
+        \App\Http\Controllers\OfficerSubjectAssignmentController::class,
+        'store',
+    ])->name('officer-subject-assignments.store');
+
+    Route::patch('/officer-subject-assignments/{id}/end', [
+        \App\Http\Controllers\OfficerSubjectAssignmentController::class,
+        'end',
+    ])->name('officer-subject-assignments.end');
 });
 
 require __DIR__.'/settings.php';

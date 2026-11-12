@@ -23,6 +23,15 @@
   assignment audit events, same-office checks, duplicate assignments and
   the multiple-officer/multiple-subject cases.
 
+- Administrators with `manage-master-data` permission can create and list
+  officer–subject assignments.
+- An assignment can be ended while retaining its record. The end action
+  records an audit event with the actor when provided.
+- A previously ended officer–subject pair can be assigned again as a new
+  record. Only one current record for the same pair is allowed.
+- AIP activity creation accepts a selected officer–subject pair only when
+  a current assignment exists.
+
 ## Not yet implemented or confirmed
 
 - The activity-number uniqueness rule is awaiting confirmation.
@@ -44,3 +53,10 @@
   authenticated actor. The service APIs currently permit a missing actor.
 - Existing assignments made before assignment audit recording was added do
   not have reconstructed audit events.
+
+- Effective dates and a link from an AIP activity to a specific assignment
+  period are not yet implemented.
+- Officer or subject transfers between offices still need handling.
+- The assignment list shows the officer's current office; it is not a
+  complete historical office display.
+- The final assignment and AIP permissions still need confirmation.
