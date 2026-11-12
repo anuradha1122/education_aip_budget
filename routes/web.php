@@ -340,6 +340,11 @@ Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
         \App\Http\Controllers\ProgrammeTypeImportController::class,
         'validateFile',
     ])->name('programme-types.import.validate');
+
+    Route::post('/programme-types/import', [
+        \App\Http\Controllers\ProgrammeTypeImportController::class,
+        'store',
+    ])->name('programme-types.import.store');
 });
 
 require __DIR__.'/settings.php';
