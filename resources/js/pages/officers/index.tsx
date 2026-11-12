@@ -125,9 +125,13 @@ export default function OfficerIndex({
                         Create, update and deactivate officers.
                     </p>
 
-                    <div>
-                        <a href="/officers/audit" className="mt-4 inline-block underline">
+                    <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2">
+                        <a href="/officers/audit" className="underline">
                             View officer audit history
+                        </a>
+
+                        <a href="/officers/export/excel" className="underline">
+                            Download officer list (Excel)
                         </a>
                     </div>
                 </div>

@@ -265,6 +265,11 @@ Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
         \App\Http\Controllers\OfficerAuditController::class,
         'index',
     ])->name('officers.audit');
+
+    Route::get('/officers/export/excel', [
+        \App\Http\Controllers\OfficerExportController::class,
+        'excel',
+    ])->name('officers.export.excel');
 });
 
 require __DIR__.'/settings.php';
