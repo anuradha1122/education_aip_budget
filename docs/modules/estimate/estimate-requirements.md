@@ -65,6 +65,11 @@ The estimate format is based on the applicable circular guidelines.
   integer cents. The current line calculation supports whole units and
   people; fractional quantities and other rules remain to be confirmed.
 
+- The `estimates` and `estimate_items` tables can store an estimate title,
+  its circular paragraph and separate expense rows. Programme and budget
+  links, calculations in the estimate workflow, and the estimate page
+  remain to be developed.
+
 ## Still to be developed
 
 - Estimate creation, editing, calculations and output.
