@@ -12,10 +12,22 @@ class AipActivity extends Model
         'activity_number',
         'description',
         'location',
+        'subject_id',
+        'officer_id',
     ];
 
     public function financialYear(): BelongsTo
     {
         return $this->belongsTo(FinancialYear::class);
+    }
+
+    public function subject(): BelongsTo
+    {
+        return $this->belongsTo(Subject::class);
+    }
+
+    public function officer(): BelongsTo
+    {
+        return $this->belongsTo(Officer::class);
     }
 }

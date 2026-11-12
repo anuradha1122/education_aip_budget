@@ -19,6 +19,9 @@
   in the same database transaction. The event includes the actor when
   provided and the created values.
 
+- AIP activities can optionally reference an existing subject and officer
+  at the database and model level.
+
 ## Not yet implemented
 
 - The activity-number uniqueness rule is awaiting confirmation.
@@ -34,3 +37,8 @@
 
 - Audit recording for updates and an audit history page are not yet
   implemented. The future AIP interface must pass the authenticated actor.
+
+- Officer–subject assignments and same-office validation are not yet
+  implemented. The AIP creation service does not yet save or validate
+  subject and officer references.
+- Vote, fund and activity office relationships remain to be designed.
