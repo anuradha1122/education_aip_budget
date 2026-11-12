@@ -33,6 +33,10 @@
   officer is assigned to the subject. Both IDs are included in the
   creation audit event.
 
+- New officer–subject assignments made through the service produce an
+  audit event in the same transaction. The event records the officer,
+  subject, office and actor when provided.
+
 ## Not yet implemented
 
 - The activity-number uniqueness rule is awaiting confirmation.
@@ -61,3 +65,9 @@
 - The effect of moving an officer or subject to another office still needs
   to be handled; the same-office check currently applies when assigning
   through the service.
+
+- The assignment interface, removal and transfer handling, and historical
+  validity rules are not yet implemented. The future interface must pass
+  the authenticated actor.
+- Existing assignments made before audit recording was added do not have
+  reconstructed audit events.
