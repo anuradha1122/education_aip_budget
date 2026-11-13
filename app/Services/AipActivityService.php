@@ -45,6 +45,17 @@ class AipActivityService
                 ]);
             }
 
+            $numberExists = DB::table('aip_activities')
+                ->where('financial_year_id', $year->id)
+                ->where('activity_number', $validated['activity_number'])
+                ->exists();
+
+            if ($numberExists) {
+                throw ValidationException::withMessages([
+                    'activity_number' => 'This activity number already exists for the selected financial year.',
+                ]);
+            }
+
             $subjectId = $validated['subject_id'] ?? null;
             $officerId = $validated['officer_id'] ?? null;
 
