@@ -75,9 +75,5 @@
 - AIP activity update actions and their audit recording are not yet
   implemented. The current audit page displays recorded events.
 
-- an activity number identifies one common activity within a financial year and can be reused in another year.
-
-- each office has its own allocation and spending for that common activity; those records are still to be developed.
-
 - Each office needs its own allocation and spending records linked to the
   common activity. These records have not yet been developed.
