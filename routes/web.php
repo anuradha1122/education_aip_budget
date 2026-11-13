@@ -425,6 +425,16 @@ Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
         \App\Http\Controllers\OfficerSubjectAssignmentController::class,
         'end',
     ])->name('officer-subject-assignments.end');
+
+    Route::get('/aip-activities', [
+        \App\Http\Controllers\AipActivityController::class,
+        'index',
+    ])->name('aip-activities.index');
+
+    Route::post('/aip-activities', [
+        \App\Http\Controllers\AipActivityController::class,
+        'store',
+    ])->name('aip-activities.store');
 });
 
 require __DIR__.'/settings.php';

@@ -32,6 +32,12 @@
 - AIP activity creation accepts a selected officer–subject pair only when
   a current assignment exists.
 
+- An initial AIP activity page lets users with `manage-master-data`
+  permission create and search activities. It offers open financial years
+  and current officer–subject assignments.
+- Activity creation uses the existing validation service and records the
+  authenticated user in the creation audit event.
+
 ## Not yet implemented or confirmed
 
 - The activity-number uniqueness rule is awaiting confirmation.
