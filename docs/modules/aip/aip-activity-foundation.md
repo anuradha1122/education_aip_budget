@@ -51,6 +51,10 @@
   the activity and office exist, rejects duplicate links, and prevents
   creation for a closed financial year.
 
+- The activity–office linking service records a creation audit event in
+  the same transaction as the link. It records the actor when provided,
+  the activity, financial year and office.
+
 ## Not yet implemented or confirmed
 
 - Closed-year checks are not enforced across all AIP actions or direct
@@ -85,5 +89,7 @@
 - Each office needs its own allocation and spending records linked to the
   common activity. These records have not yet been developed.
 
-- There is no interface or audit history yet for managing activity–office
-  links. Office-specific allocations and spending are not yet implemented.
+- There is no interface yet for managing activity–office links or viewing
+  their audit history. The future interface must pass the signed-in user
+  to the service. Links created before audit recording do not have
+  reconstructed audit events.

@@ -5,20 +5,21 @@ namespace App\Services;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
+use App\Models\User;
 
 class AipActivityOfficeService
 {
     /**
      * Link an office to a common AIP activity.
      */
-    public function create(array $input): int
+    public function create(array $input, ?User $actor = null): int
     {
         $validated = Validator::make($input, [
             'aip_activity_id' => ['required', 'integer', 'min:1'],
             'office_id' => ['required', 'integer', 'min:1'],
         ])->validate();
 
-        return DB::transaction(function () use ($validated) {
+        return DB::transaction(function () use ($validated, $actor) {
             $activity = DB::table('aip_activities')
                 ->where('id', $validated['aip_activity_id'])
                 ->first();
@@ -69,12 +70,27 @@ class AipActivityOfficeService
                 ]);
             }
 
-            return DB::table('aip_activity_offices')->insertGetId([
+            $linkId = DB::table('aip_activity_offices')->insertGetId([
                 'aip_activity_id' => $activity->id,
                 'office_id' => $office->id,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
+
+            DB::table('aip_activity_office_audit_events')->insert([
+                'aip_activity_office_id' => $linkId,
+                'actor_id' => $actor?->id,
+                'action' => 'created',
+                'new_values' => json_encode([
+                    'aip_activity_id' => $activity->id,
+                    'financial_year_id' => $year->id,
+                    'office_id' => $office->id,
+                ], JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            return $linkId;
         });
     }
 }
