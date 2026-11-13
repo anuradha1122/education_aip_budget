@@ -435,6 +435,11 @@ Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
         \App\Http\Controllers\AipActivityController::class,
         'store',
     ])->name('aip-activities.store');
+
+    Route::get('/aip-activities/audit', [
+        \App\Http\Controllers\AipActivityAuditController::class,
+        'index',
+    ])->name('aip-activities.audit');
 });
 
 require __DIR__.'/settings.php';

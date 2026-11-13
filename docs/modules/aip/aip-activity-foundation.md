@@ -38,6 +38,9 @@
 - Activity creation uses the existing validation service and records the
   authenticated user in the creation audit event.
 
+- An audit history page lets users with `manage-master-data` permission
+  review recorded AIP activity creation events.
+
 ## Not yet implemented or confirmed
 
 - The activity-number uniqueness rule is awaiting confirmation.
@@ -66,3 +69,6 @@
 - The assignment list shows the officer's current office; it is not a
   complete historical office display.
 - The final assignment and AIP permissions still need confirmation.
+
+- AIP activity update actions and their audit recording are not yet
+  implemented. The current audit page displays recorded events.

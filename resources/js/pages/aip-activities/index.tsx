@@ -26,7 +26,13 @@ export default function AipActivities({ years, officers, assignments, search, ac
     return <AppLayout breadcrumbs={[{ title: 'Dashboard', href: '/dashboard' }, { title: 'AIP activities', href: '/aip-activities' }]}>
         <Head title="AIP activities" />
         <div className="flex flex-col gap-6 p-4 md:p-6">
-            <div><h1 className="text-2xl font-semibold">AIP activities</h1><p className="mt-2 text-sm text-muted-foreground">Create and review activities for a financial year.</p></div>
+            <div>
+                <h1 className="text-2xl font-semibold">AIP activities</h1><p className="mt-2 text-sm text-muted-foreground">Create and review activities for a financial year.</p>
+            
+                <a href="/aip-activities/audit" className="mt-3 inline-block underline">
+                    View audit history
+                </a>
+            </div>
             <form onSubmit={submit} className="flex max-w-3xl flex-col gap-4 rounded border p-4">
                 <h2 className="text-lg font-semibold">Add activity</h2>
                 <label>Financial year<select required value={data.financial_year_id} onChange={(event) => setData('financial_year_id', event.target.value)} className="mt-1 block w-full rounded border bg-background p-2"><option value="">Select an open year</option>{years.map((year) => <option key={year.id} value={year.id}>{year.year}</option>)}</select></label>
