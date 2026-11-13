@@ -44,6 +44,9 @@
 - An activity number identifies one common activity within a financial year.
   The same number can be used again in another financial year.
 
+- The `aip_activity_offices` table can link a common activity to multiple
+  offices. Each office can be linked only once to the same activity.
+
 ## Not yet implemented or confirmed
 
 - Closed-year checks are not enforced across all AIP actions or direct
@@ -77,3 +80,6 @@
 
 - Each office needs its own allocation and spending records linked to the
   common activity. These records have not yet been developed.
+
+- There is no interface or service yet for managing activity–office links.
+  Office-specific allocations and spending are not yet implemented.
