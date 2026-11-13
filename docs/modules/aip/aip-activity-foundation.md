@@ -55,6 +55,10 @@
   the same transaction as the link. It records the actor when provided,
   the activity, financial year and office.
 
+- Users with `manage-master-data` permission can link an office to an
+  activity and view existing links. The signed-in user is recorded in the
+  creation audit event. The form resets after a successful link.
+
 ## Not yet implemented or confirmed
 
 - Closed-year checks are not enforced across all AIP actions or direct
@@ -89,7 +93,8 @@
 - Each office needs its own allocation and spending records linked to the
   common activity. These records have not yet been developed.
 
-- There is no interface yet for managing activity–office links or viewing
-  their audit history. The future interface must pass the signed-in user
-  to the service. Links created before audit recording do not have
+- An interface for viewing activity–office audit history has not yet been
+  implemented. Links created before audit recording do not have
   reconstructed audit events.
+- The rules for inactive offices and correcting or ending a link still
+  need to be confirmed.

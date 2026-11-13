@@ -32,6 +32,13 @@ export default function AipActivities({ years, officers, assignments, search, ac
                 <a href="/aip-activities/audit" className="mt-3 inline-block underline">
                     View audit history
                 </a>
+
+                <Link
+                    href="/aip-activity-offices"
+                    className="inline-block underline"
+                >
+                    Manage activity offices
+                </Link>
             </div>
             <form onSubmit={submit} className="flex max-w-3xl flex-col gap-4 rounded border p-4">
                 <h2 className="text-lg font-semibold">Add activity</h2>

@@ -23,6 +23,7 @@ use App\Http\Controllers\FinancialYearAuditController;
 use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\SubjectAuditController;
 use App\Http\Controllers\SubjectExportController;
+use App\Http\Controllers\AipActivityOfficeController;
 
 Route::get('/', function () {
     return Inertia::render('welcome');
@@ -440,6 +441,12 @@ Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
         \App\Http\Controllers\AipActivityAuditController::class,
         'index',
     ])->name('aip-activities.audit');
+
+    Route::get('/aip-activity-offices', [AipActivityOfficeController::class, 'index'])
+        ->name('aip-activity-offices.index');
+
+    Route::post('/aip-activity-offices', [AipActivityOfficeController::class, 'store'])
+        ->name('aip-activity-offices.store');
 });
 
 require __DIR__.'/settings.php';
