@@ -41,9 +41,11 @@
 - An audit history page lets users with `manage-master-data` permission
   review recorded AIP activity creation events.
 
+- An activity number identifies one common activity within a financial year.
+  The same number can be used again in another financial year.
+
 ## Not yet implemented or confirmed
 
-- The activity-number uniqueness rule is awaiting confirmation.
 - Closed-year checks are not enforced across all AIP actions or direct
   database writes. The year-closing workflow and concurrent changes need
   review.
@@ -72,3 +74,10 @@
 
 - AIP activity update actions and their audit recording are not yet
   implemented. The current audit page displays recorded events.
+
+- an activity number identifies one common activity within a financial year and can be reused in another year.
+
+- each office has its own allocation and spending for that common activity; those records are still to be developed.
+
+- Each office needs its own allocation and spending records linked to the
+  common activity. These records have not yet been developed.
