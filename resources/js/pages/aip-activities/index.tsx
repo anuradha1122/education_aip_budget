@@ -49,6 +49,10 @@ export default function AipActivities({ years, officers, assignments, search, ac
                     <a href="/aip-activities/import/template" className="underline">
                         Download AIP import template
                     </a>
+
+                    <Link href="/aip-activities/import" className="underline">
+                        Validate AIP import
+                    </Link>
                 </div>
             </div>
             <form onSubmit={submit} className="flex w-full max-w-2xl flex-col gap-4 rounded border p-4">

@@ -73,6 +73,10 @@ format does not have a programme-type column.
 
 ## Implemented
 
+- Authorised users can upload an AIP workbook for preliminary validation.
+  The page checks the selected financial year, template headings, activity
+  numbers and descriptions, and displays the results without saving rows.
+
 ### Activity register
 
 - `aip_activities` stores an activity number, description, optional
@@ -161,11 +165,9 @@ test suite and acceptance testing must be run again for the completed module.
 
 ### Annual import
 
-- AIP file upload, row validation, review and saving are not yet implemented.
-- The import must not silently discard vote or fund values.
-- The rules for resolving subject and officer references in the import
-  require careful review, including their office relationship.
-- Import results, error handling and audit recording still need to be tested.
+- Subject, officer, designation, vote and fund reference matching and
+  reviewed saving are not yet implemented. The complete import must display
+  all template fields and must not silently discard vote or fund values.
 
 ### Activity and link corrections
 
