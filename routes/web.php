@@ -24,6 +24,7 @@ use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\SubjectAuditController;
 use App\Http\Controllers\SubjectExportController;
 use App\Http\Controllers\AipActivityOfficeController;
+use App\Http\Controllers\AipFundingEntryController;
 
 Route::get('/', function () {
     return Inertia::render('welcome');
@@ -447,6 +448,12 @@ Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
 
     Route::post('/aip-activity-offices', [AipActivityOfficeController::class, 'store'])
         ->name('aip-activity-offices.store');
+
+    Route::get('/aip-funding-entries', [AipFundingEntryController::class, 'index'])
+        ->name('aip-funding-entries.index');
+
+    Route::post('/aip-funding-entries', [AipFundingEntryController::class, 'store'])
+        ->name('aip-funding-entries.store');
 });
 
 require __DIR__.'/settings.php';

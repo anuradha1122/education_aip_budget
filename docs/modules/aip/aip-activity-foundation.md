@@ -70,7 +70,11 @@
 
 - The funding-entry service records a creation audit event in the same
   transaction. It records the actor when provided, the activity, financial
-  year, vote and fund.s
+  year, vote and fund.
+
+- Users with `manage-master-data` permission can assign a vote and fund to
+  an activity and view existing entries. The signed-in user is recorded
+  in the creation audit event.
 
 ## Not yet implemented or confirmed
 
@@ -135,3 +139,7 @@
   import must pass the signed-in user to the service.
 - Entries created before audit recording do not have reconstructed
   audit events.
+
+- Funding-entry import, correction, and an audit history page are not yet
+  implemented. Rules for duplicate entries and selection of inactive votes
+  or funds still need confirmation.
