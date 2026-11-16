@@ -1,145 +1,224 @@
-# AIP activity database foundation
+# M05: AIP activity register
+
+## Status
+
+**In progress.** This document records the current implementation and
+outstanding work for the AIP activity register.
+
+M05 must not be considered complete until the remaining features, checks,
+documentation and acceptance testing have been completed.
+
+## Purpose
+
+The AIP activity register maintains annual activities for the Sabaragamuwa
+Province Programme Budget system.
+
+An activity is identified by its activity number within a financial year.
+The same activity may be used by multiple offices.
+
+## Confirmed requirements
+
+### Activity numbers
+
+- An activity number is unique within a financial year.
+- The same number may be used again in another financial year.
+- New activity numbers must contain digits only.
+- Activity numbers are stored as text so that leading zeros, such as `001`,
+  are preserved.
+- One common activity number is used across the province and zones for the
+  same activity in a financial year.
+
+### Programme level
+
+- Programme level describes whether the programme is held at provincial,
+  zonal or school level.
+- Programme level is separate from the physical location or venue.
+
+### Offices, subjects and officers
+
+- Each office has its own subjects and officers.
+- An officer may be assigned to multiple subjects in the same office.
+- A subject may have multiple officers in the same office.
+- A common activity may be linked to multiple offices.
+- Each office has its own allocation and spending for an activity. The
+  allocation and spending features are not yet implemented.
+
+### Votes and funds
+
+- A vote may be used by multiple activities.
+- An activity may have multiple funds and vote entries.
+- Votes and funds may be the same or different across activities.
+- Votes and funds are assigned manually in the AIP data. The system must
+  not assume that one fund always has one vote.
+
+### Annual AIP import
+
+The corrected AIP format contains these ten columns:
+
+1. Serial number
+2. Level
+3. Activity Number
+4. Activity
+5. Subject code
+6. Subject
+7. Officer
+8. Designation
+9. Vote
+10. Fund
+
+The user will select the financial year when importing.
+
+Training and meeting are programme types, not funds. The corrected AIP
+format does not have a programme-type column.
 
 ## Implemented
 
-- `aip_activities` stores an activity number, description and optional
-  location/level. Each activity references an existing financial year.
-- The activity number is stored as text to preserve values such as `001`.
-  The database prevents deletion of a financial year referenced by an activity.
-- `AipActivityService` validates and trims basic activity fields and checks
-  that the selected financial year exists and is open during creation.
+### Activity register
+
+- `aip_activities` stores an activity number, description, optional
+  programme level and optional physical location.
+- Each activity references an existing financial year.
+- The database enforces activity-number uniqueness within a financial year.
+- `AipActivityService` validates and trims basic activity details.
+- The creation service checks that the financial year exists and is open.
+- The creation service validates new activity numbers as digits only.
 - Activity creation through the service records an audit event in the same
-  transaction, including the created values and the actor when provided.
-- An activity may optionally reference a subject and an officer. If one is
-  provided to the creation service, the other is required. The service checks
-  that they belong to the same office and that the officer is assigned to the
-  subject. Both IDs are included in the creation audit event.
-- `officer_subject_assignments` stores officer–subject pairs. One officer can
-  have multiple subjects and a subject can have multiple officers. The
-  assignment service checks same-office membership and rejects duplicate pairs.
-- New assignments through the service produce an audit event in the same
-  transaction, including the officer, subject, office and actor when provided.
-- Tests cover the database references, creation validation, activity and
-  assignment audit events, same-office checks, duplicate assignments and
-  the multiple-officer/multiple-subject cases.
+  transaction. The actor is recorded when provided.
+- Users with `manage-master-data` permission can create and search
+  activities through the AIP activity page.
+- The activity creation page passes the signed-in user to the service.
+- The activity form resets after a successful save.
+- An audit history page displays recorded activity creation events to users
+  with `manage-master-data` permission.
+- An AIP activities link is available in the sidebar for users with the
+  relevant permission.
 
-- Administrators with `manage-master-data` permission can create and list
-  officer–subject assignments.
-- An assignment can be ended while retaining its record. The end action
-  records an audit event with the actor when provided.
-- A previously ended officer–subject pair can be assigned again as a new
-  record. Only one current record for the same pair is allowed.
-- AIP activity creation accepts a selected officer–subject pair only when
-  a current assignment exists.
+### Subjects and officers
 
-- An initial AIP activity page lets users with `manage-master-data`
-  permission create and search activities. It offers open financial years
-  and current officer–subject assignments.
-- Activity creation uses the existing validation service and records the
-  authenticated user in the creation audit event.
+- An activity can optionally reference a subject and an officer.
+- If either is supplied to the creation service, both are required.
+- The service checks that the subject and officer belong to the same office
+  and that the officer has a current assignment to that subject.
+- The subject and officer IDs are included in the activity creation audit.
+- `officer_subject_assignments` stores officer–subject assignments.
+- The assignment service checks same-office membership and rejects
+  duplicate current assignments.
+- Authorised users can create and list assignments.
+- An assignment can be ended without deleting its record. Ending it records
+  an audit event.
+- A previously ended pair can be assigned again as a new record.
 
-- An audit history page lets users with `manage-master-data` permission
-  review recorded AIP activity creation events.
+### Activity–office links
 
-- An activity number identifies one common activity within a financial year.
-  The same number can be used again in another financial year.
+- `aip_activity_offices` links a common activity to multiple offices.
+- The same office cannot be linked twice to the same activity.
+- `AipActivityOfficeService` checks that the activity and office exist and
+  prevents link creation for a closed financial year.
+- Link creation through the service records an audit event in the same
+  transaction.
+- Users with `manage-master-data` permission can create and view links.
+  The page passes the signed-in user to the service and resets after a
+  successful link.
 
-- The `aip_activity_offices` table can link a common activity to multiple
-  offices. Each office can be linked only once to the same activity.
+### Vote and fund entries
 
-- `AipActivityOfficeService` creates activity–office links. It checks that
-  the activity and office exist, rejects duplicate links, and prevents
-  creation for a closed financial year.
+- `aip_activity_funding_entries` can link an activity to multiple vote and
+  fund entries.
+- The referenced activity, vote and fund must exist.
+- `AipActivityFundingEntryService` checks the references and rejects new
+  entries for a closed financial year.
+- The service records a creation audit event in the same transaction.
+- Users with `manage-master-data` permission can assign votes and funds
+  and view existing entries. The page passes the signed-in user to the
+  service.
 
-- The activity–office linking service records a creation audit event in
-  the same transaction as the link. It records the actor when provided,
-  the activity, financial year and office.
+### Import template
 
-- Users with `manage-master-data` permission can link an office to an
-  activity and view existing links. The signed-in user is recorded in the
-  creation audit event. The form resets after a successful link.
+- Users with `manage-master-data` permission can download a blank AIP
+  import template with the ten columns in the corrected format.
+- The template was downloaded and compared with the corrected format in the
+  browser.
 
-- programme level and physical location are stored separately, and that new activity numbers accept digits only while preserving leading zeros.
+## Tests and checks completed
 
-- The `aip_activity_funding_entries` table can link an activity to multiple
-  vote and fund entries. The referenced activity, vote and fund must exist.
+The following checks have passed during development:
 
-- `AipActivityFundingEntryService` saves an activity, vote and fund
-  together. It checks that all three records exist and rejects entries
-  for a closed financial year.
+- Activity database, service, creation, search and audit tests.
+- Activity-number uniqueness tests and digit-only validation test.
+- Separate programme-level and physical-location test.
+- Officer–subject assignment, ending and audit tests.
+- Activity–office database, service, management and audit tests.
+- Activity funding-entry database, service, management and audit tests.
+- Import-template download and permission tests.
+- TypeScript checks and production builds for the pages developed so far.
+- Browser checks for activity creation, activity–office links, vote and fund
+  entries, and template download.
 
-- The funding-entry service records a creation audit event in the same
-  transaction. It records the actor when provided, the activity, financial
-  year, vote and fund.
-
-- Users with `manage-master-data` permission can assign a vote and fund to
-  an activity and view existing entries. The signed-in user is recorded
-  in the creation audit event.
+These results apply to the versions tested during development. The full M05
+test suite and acceptance testing must be run again for the completed module.
 
 ## Not yet implemented or confirmed
 
-- Closed-year checks are not enforced across all AIP actions or direct
-  database writes. The year-closing workflow and concurrent changes need
-  review.
-- English validation, final permissions and office-scoped access are not
-  yet implemented for AIP activities.
-- The creation service currently permits both subject and officer to be
-  omitted. Required fields for the final AIP workflow need confirmation.
-- Vote, fund and activity office relationships still need design. An officer's
-  designation is linked through the existing officer record.
-- AIP entry and import, allocations, update audit recording, audit history
-  pages and reports are not yet implemented.
-- The officer–subject assignment interface, removal and transfer handling,
-  and historical validity rules are not yet implemented. Office changes can
-  affect existing assignments; the creation checks alone do not prevent this.
-- Future user-facing activity and assignment actions must pass the
-  authenticated actor. The service APIs currently permit a missing actor.
-- Existing assignments made before assignment audit recording was added do
-  not have reconstructed audit events.
+### Annual import
 
-- Effective dates and a link from an AIP activity to a specific assignment
-  period are not yet implemented.
+- AIP file upload, row validation, review and saving are not yet implemented.
+- The import must not silently discard vote or fund values.
+- The rules for resolving subject and officer references in the import
+  require careful review, including their office relationship.
+- Import results, error handling and audit recording still need to be tested.
+
+### Activity and link corrections
+
+- Activity update actions and update audit recording are not yet implemented.
+- Correction or ending of activity–office links is not yet implemented.
+- Funding-entry correction and an audit history page are not yet implemented.
+- The rules for duplicate activity–vote–fund entries still need confirmation.
+  The current funding-entry service allows repeated combinations.
+- Rules for selecting inactive offices, votes and funds still need confirmation.
+
+### Financial-year and access controls
+
+- Closed-year checks exist in the current creation services, but are not
+  enforced across every future AIP action or direct database write.
+- The financial-year closing and reopening workflow, including concurrent
+  changes, needs review.
+- Final AIP permissions, roles and office-scoped access need confirmation
+  and testing.
+- English-only validation for AIP activity descriptions is not yet enforced.
+
+### Historical data
+
+- Existing `location` values entered before level and physical location were
+  separated need individual review.
+- Existing invalid activity numbers, including the test value `x1`, are not
+  automatically corrected by the new validation.
+- Assignment records created before assignment audit recording do not have
+  reconstructed audit events.
+- Activity–office links and funding entries created before their respective
+  audit recording do not have reconstructed audit events.
+- Effective dates and a link from an activity to a specific officer–subject
+  assignment period are not yet implemented.
 - Officer or subject transfers between offices still need handling.
 - The assignment list shows the officer's current office; it is not a
   complete historical office display.
-- The final assignment and AIP permissions still need confirmation.
 
-- AIP activity update actions and their audit recording are not yet
-  implemented. The current audit page displays recorded events.
+### Future budget work
 
-- Each office needs its own allocation and spending records linked to the
-  common activity. These records have not yet been developed.
+- Office-specific allocations and expenditure have not been implemented.
+- The relationships between office allocations, funding entries and
+  expenditure require further design.
+- AIP reporting and reconciliation remain to be completed.
 
-- An interface for viewing activity–office audit history has not yet been
-  implemented. Links created before audit recording do not have
-  reconstructed audit events.
-- The rules for inactive offices and correcting or ending a link still
-  need to be confirmed.
+## Dependencies and completion
 
-- The annual AIP import must support the corrected format: Serial number,
-  Level, Activity Number, Activity, Subject code, Subject, Officer,
-  Designation, Vote and Fund. The user selects the financial year.
-- Vote and fund values are assigned manually in the source data. They may
-  repeat across activities; an activity may have multiple funds.
-- Training and meeting are programme types, not funds. The corrected AIP
-  format does not contain a programme-type column.
-- The current activity records do not yet store vote or fund assignments.
-  The import must not silently discard these values.
+M05 depends on organisation and master data, permissions and financial-year
+controls. Those dependencies must be reviewed as part of module completion.
 
-- Level describes whether the programme is held at provincial, zonal or
-  school level. It is separate from the physical venue.
-- The existing activity `location` field and "Level / location" label need
-  review and separation before importing level values.
+Before M05 is reported as complete:
 
-- existing location values entered before this change need individual review. The existing test activity x1 also remains unchanged.
-
-- Activity funding entries do not yet have a management interface, audit
-  history page or import. Rules for correcting entries and identifying
-  duplicate entries still need confirmation. The future interface and
-  import must pass the signed-in user to the service.
-- Entries created before audit recording do not have reconstructed
-  audit events.
-
-- Funding-entry import, correction, and an audit history page are not yet
-  implemented. Rules for duplicate entries and selection of inactive votes
-  or funds still need confirmation.
+- Complete the agreed M05 features and resolve or document outstanding rules.
+- Test permissions, office access and closed-year behavior.
+- Test the annual import with valid, invalid and duplicate data.
+- Complete relevant audit and correction checks.
+- Run the relevant automated tests and browser acceptance checks.
+- Review the module documentation and prepare the completion report.

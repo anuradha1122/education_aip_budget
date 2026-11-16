@@ -45,6 +45,10 @@ export default function AipActivities({ years, officers, assignments, search, ac
                     <Link href="/aip-funding-entries" className="underline">
                         Manage votes and funds
                     </Link>
+
+                    <a href="/aip-activities/import/template" className="underline">
+                        Download AIP import template
+                    </a>
                 </div>
             </div>
             <form onSubmit={submit} className="flex w-full max-w-2xl flex-col gap-4 rounded border p-4">
