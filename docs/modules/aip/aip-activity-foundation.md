@@ -61,6 +61,9 @@
 
 - programme level and physical location are stored separately, and that new activity numbers accept digits only while preserving leading zeros.
 
+- The `aip_activity_funding_entries` table can link an activity to multiple
+  vote and fund entries. The referenced activity, vote and fund must exist.
+
 ## Not yet implemented or confirmed
 
 - Closed-year checks are not enforced across all AIP actions or direct
@@ -117,3 +120,8 @@
   review and separation before importing level values.
 
 - existing location values entered before this change need individual review. The existing test activity x1 also remains unchanged.
+
+- Activity funding entries do not yet have a management interface, audit
+  recording or import. Rules for correcting entries and identifying
+  duplicate entries still need confirmation.
+- Office allocations and expenditure are not yet linked to funding entries.
