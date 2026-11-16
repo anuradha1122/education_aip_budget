@@ -5,10 +5,11 @@ namespace App\Services;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
+use App\Models\User;
 
 class AipActivityFundingEntryService
 {
-    public function create(array $input): int
+    public function create(array $input, ?User $actor = null): int
     {
         $validated = Validator::make($input, [
             'aip_activity_id' => ['required', 'integer', 'min:1'],
@@ -16,7 +17,7 @@ class AipActivityFundingEntryService
             'fund_id' => ['required', 'integer', 'min:1'],
         ])->validate();
 
-        return DB::transaction(function () use ($validated) {
+        return DB::transaction(function () use ($validated, $actor) {
             $activity = DB::table('aip_activities')
                 ->where('id', $validated['aip_activity_id'])
                 ->first();
@@ -64,13 +65,29 @@ class AipActivityFundingEntryService
                 ]);
             }
 
-            return DB::table('aip_activity_funding_entries')->insertGetId([
+            $entryId = DB::table('aip_activity_funding_entries')->insertGetId([
                 'aip_activity_id' => $activity->id,
                 'vote_id' => $validated['vote_id'],
                 'fund_id' => $validated['fund_id'],
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
+
+            DB::table('aip_funding_entry_audit_events')->insert([
+                'funding_entry_id' => $entryId,
+                'actor_id' => $actor?->id,
+                'action' => 'created',
+                'new_values' => json_encode([
+                    'aip_activity_id' => $activity->id,
+                    'financial_year_id' => $year->id,
+                    'vote_id' => (int) $validated['vote_id'],
+                    'fund_id' => (int) $validated['fund_id'],
+                ], JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            return $entryId;
         });
     }
 }

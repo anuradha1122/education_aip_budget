@@ -68,6 +68,10 @@
   together. It checks that all three records exist and rejects entries
   for a closed financial year.
 
+- The funding-entry service records a creation audit event in the same
+  transaction. It records the actor when provided, the activity, financial
+  year, vote and fund.s
+
 ## Not yet implemented or confirmed
 
 - Closed-year checks are not enforced across all AIP actions or direct
@@ -126,6 +130,8 @@
 - existing location values entered before this change need individual review. The existing test activity x1 also remains unchanged.
 
 - Activity funding entries do not yet have a management interface, audit
-  recording or import. Rules for correcting entries and identifying
-  duplicate entries still need confirmation.
-- Office allocations and expenditure are not yet linked to funding entries.
+  history page or import. Rules for correcting entries and identifying
+  duplicate entries still need confirmation. The future interface and
+  import must pass the signed-in user to the service.
+- Entries created before audit recording do not have reconstructed
+  audit events.
