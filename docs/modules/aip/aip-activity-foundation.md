@@ -64,6 +64,10 @@
 - The `aip_activity_funding_entries` table can link an activity to multiple
   vote and fund entries. The referenced activity, vote and fund must exist.
 
+- `AipActivityFundingEntryService` saves an activity, vote and fund
+  together. It checks that all three records exist and rejects entries
+  for a closed financial year.
+
 ## Not yet implemented or confirmed
 
 - Closed-year checks are not enforced across all AIP actions or direct
