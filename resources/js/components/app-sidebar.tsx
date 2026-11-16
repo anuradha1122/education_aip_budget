@@ -92,6 +92,12 @@ export function AppSidebar() {
             url: '/programme-types',
             icon: Building2,
         });
+
+        mainNavItems.push({
+            title: 'AIP activities',
+            url: '/aip-activities',
+            icon: LayoutGrid,
+        });
     }
 
     if (permissions?.manage_master_data) {
