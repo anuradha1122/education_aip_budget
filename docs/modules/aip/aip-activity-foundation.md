@@ -59,6 +59,8 @@
   activity and view existing links. The signed-in user is recorded in the
   creation audit event. The form resets after a successful link.
 
+- programme level and physical location are stored separately, and that new activity numbers accept digits only while preserving leading zeros.
+
 ## Not yet implemented or confirmed
 
 - Closed-year checks are not enforced across all AIP actions or direct
@@ -98,3 +100,20 @@
   reconstructed audit events.
 - The rules for inactive offices and correcting or ending a link still
   need to be confirmed.
+
+- The annual AIP import must support the corrected format: Serial number,
+  Level, Activity Number, Activity, Subject code, Subject, Officer,
+  Designation, Vote and Fund. The user selects the financial year.
+- Vote and fund values are assigned manually in the source data. They may
+  repeat across activities; an activity may have multiple funds.
+- Training and meeting are programme types, not funds. The corrected AIP
+  format does not contain a programme-type column.
+- The current activity records do not yet store vote or fund assignments.
+  The import must not silently discard these values.
+
+- Level describes whether the programme is held at provincial, zonal or
+  school level. It is separate from the physical venue.
+- The existing activity `location` field and "Level / location" label need
+  review and separation before importing level values.
+
+- existing location values entered before this change need individual review. The existing test activity x1 also remains unchanged.

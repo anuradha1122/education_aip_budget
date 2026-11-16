@@ -42,7 +42,7 @@ class AipActivityController extends Controller
     public function store(Request $request, AipActivityService $service): RedirectResponse
     {
         $service->create($request->only([
-            'financial_year_id', 'activity_number', 'description', 'location', 'subject_id', 'officer_id',
+            'financial_year_id', 'activity_number', 'description', 'level', 'location', 'subject_id', 'officer_id',
         ]), $request->user());
 
         return redirect()->route('aip-activities.index');

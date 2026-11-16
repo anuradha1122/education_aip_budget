@@ -11,6 +11,7 @@ class AipActivity extends Model
         'financial_year_id',
         'activity_number',
         'description',
+        'level',
         'location',
         'subject_id',
         'officer_id',

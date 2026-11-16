@@ -12,7 +12,7 @@ class AipActivityService
 {
     public function create(array $input, ?User $actor = null): AipActivity
     {
-        foreach (['activity_number', 'description', 'location'] as $field) {
+        foreach (['activity_number', 'description', 'level', 'location'] as $field) {
             if (isset($input[$field]) && is_string($input[$field])) {
                 $input[$field] = trim($input[$field]);
             }
@@ -20,8 +20,9 @@ class AipActivityService
 
         $validated = Validator::make($input, [
             'financial_year_id' => ['required', 'integer'],
-            'activity_number' => ['required', 'string', 'max:50'],
+            'activity_number' => ['required', 'string', 'max:50', 'regex:/\A[0-9]+\z/'],
             'description' => ['required', 'string'],
+            'level' => ['nullable', 'string', 'max:255'],
             'location' => ['nullable', 'string', 'max:255'],
             'subject_id' => ['nullable', 'integer', 'min:1', 'required_with:officer_id'],
             'officer_id' => ['nullable', 'integer', 'min:1', 'required_with:subject_id'],
@@ -84,6 +85,7 @@ class AipActivityService
                 'financial_year_id' => $year->id,
                 'activity_number' => $validated['activity_number'],
                 'description' => $validated['description'],
+                'level' => ($validated['level'] ?? '') === '' ? null : $validated['level'],
                 'location' => ($validated['location'] ?? '') === '' ? null : $validated['location'],
                 'subject_id' => $subjectId,
                 'officer_id' => $officerId,
@@ -97,6 +99,7 @@ class AipActivityService
                     'financial_year_id' => $activity->financial_year_id,
                     'activity_number' => $activity->activity_number,
                     'description' => $activity->description,
+                    'level' => $activity->level,
                     'location' => $activity->location,
                     'subject_id' => $activity->subject_id,
                     'officer_id' => $activity->officer_id,
