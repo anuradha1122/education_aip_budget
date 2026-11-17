@@ -161,13 +161,15 @@ The following checks have passed during development:
 These results apply to the versions tested during development. The full M05
 test suite and acceptance testing must be run again for the completed module.
 
+- The preliminary AIP import review displays all ten template columns,
+  the Excel row number and preliminary validation errors.
+
 ## Not yet implemented or confirmed
 
 ### Annual import
 
 - Subject, officer, designation, vote and fund reference matching and
-  reviewed saving are not yet implemented. The complete import must display
-  all template fields and must not silently discard vote or fund values.
+  reviewed saving are not yet implemented. must not silently discard vote or fund values.
 
 ### Activity and link corrections
 

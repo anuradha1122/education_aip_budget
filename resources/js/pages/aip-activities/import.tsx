@@ -158,11 +158,14 @@ export default function AipImport({ years, result }: Props) {
                                 <thead>
                                     <tr className="border-b">
                                         <th className="p-2">Excel row</th>
+                                        <th className="p-2">Serial number</th>
+                                        <th className="p-2">Level</th>
                                         <th className="p-2">Activity number</th>
                                         <th className="p-2">Activity</th>
-                                        <th className="p-2">Level</th>
                                         <th className="p-2">Subject code</th>
+                                        <th className="p-2">Subject</th>
                                         <th className="p-2">Officer</th>
+                                        <th className="p-2">Designation</th>
                                         <th className="p-2">Vote</th>
                                         <th className="p-2">Fund</th>
                                         <th className="p-2">Preliminary errors</th>
@@ -171,26 +174,16 @@ export default function AipImport({ years, result }: Props) {
 
                                 <tbody>
                                     {result.rows.map((row) => (
-                                        <tr
-                                            key={row.row_number}
-                                            className="border-b"
-                                        >
-                                            <td className="p-2">
-                                                {row.row_number}
-                                            </td>
-                                            <td className="p-2">
-                                                {row.activity_number}
-                                            </td>
-                                            <td className="p-2">
-                                                {row.activity}
-                                            </td>
+                                        <tr key={row.row_number} className="border-b">
+                                            <td className="p-2">{row.row_number}</td>
+                                            <td className="p-2">{row.serial_number}</td>
                                             <td className="p-2">{row.level}</td>
-                                            <td className="p-2">
-                                                {row.subject_code}
-                                            </td>
-                                            <td className="p-2">
-                                                {row.officer}
-                                            </td>
+                                            <td className="p-2">{row.activity_number}</td>
+                                            <td className="p-2">{row.activity}</td>
+                                            <td className="p-2">{row.subject_code}</td>
+                                            <td className="p-2">{row.subject}</td>
+                                            <td className="p-2">{row.officer}</td>
+                                            <td className="p-2">{row.designation}</td>
                                             <td className="p-2">{row.vote}</td>
                                             <td className="p-2">{row.fund}</td>
                                             <td className="p-2">
