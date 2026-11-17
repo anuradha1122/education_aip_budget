@@ -147,10 +147,10 @@ export default function AipImport({ years, result }: Props) {
                         </h2>
 
                         <p className="mt-2 text-sm">
-                            This preliminary check covers activity numbers and
-                            descriptions. Subject, officer, designation, vote and
-                            fund matching are not yet validated. No rows have
-                            been saved.
+                            This preliminary check covers activity numbers, descriptions, and
+                            whether supplied vote and fund codes exist. Subject, officer and
+                            designation matching are not yet validated. Blank vote and fund
+                            fields are not yet checked. No rows have been saved.
                         </p>
 
                         <div className="mt-3 overflow-x-auto">

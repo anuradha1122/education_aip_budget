@@ -164,12 +164,18 @@ test suite and acceptance testing must be run again for the completed module.
 - The preliminary AIP import review displays all ten template columns,
   the Excel row number and preliminary validation errors.
 
+- Preliminary AIP validation checks whether supplied vote and fund codes
+  exist in master data and reports unknown codes by row.
+
 ## Not yet implemented or confirmed
 
 ### Annual import
 
-- Subject, officer, designation, vote and fund reference matching and
-  reviewed saving are not yet implemented. must not silently discard vote or fund values.
+- Subject, officer and designation matching and reviewed saving are not
+  yet implemented. Blank vote and fund values and inactive references are
+  not yet rejected. The import must not silently discard vote or fund values.
+- Vote and fund validation should be tested with a full-size annual AIP
+  workbook and improved if necessary.
 
 ### Activity and link corrections
 

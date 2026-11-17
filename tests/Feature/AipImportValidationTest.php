@@ -89,6 +89,22 @@ class AipImportValidationTest extends TestCase
     {
         $year = $this->year();
 
+        DB::table('votes')->insert([
+            'code' => 'VOTE-01',
+            'description' => 'Example vote',
+            'is_active' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        DB::table('funds')->insert([
+            'code' => 'PF',
+            'name' => 'Example fund',
+            'is_active' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
         $file = $this->workbook([
             [1, 'Zonal', '123', 'Science seminar', 'SCI', 'Science',
                 'Officer', 'Designation', 'VOTE-01', 'PF'],
@@ -164,6 +180,45 @@ class AipImportValidationTest extends TestCase
                 'file' => $file,
             ])
             ->assertSessionHasErrors('file');
+
+        $this->assertDatabaseCount('aip_activities', 0);
+        $this->assertDatabaseCount('aip_activity_funding_entries', 0);
+    }
+
+    public function test_unknown_vote_and_fund_codes_are_reported(): void
+    {
+        $year = $this->year();
+
+        $file = $this->workbook([
+            [
+                1,
+                'Zonal',
+                '123',
+                'Science seminar',
+                'SCI',
+                'Science',
+                'Officer',
+                'Designation',
+                'UNKNOWN-VOTE',
+                'UNKNOWN-FUND',
+            ],
+        ]);
+
+        $this->actingAs($this->admin())
+            ->post('/aip-activities/import/validate', [
+                'financial_year_id' => $year,
+                'file' => $file,
+            ])
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where(
+                    'result.rows.0.errors.0',
+                    'Vote code was not found in master data.'
+                )
+                ->where(
+                    'result.rows.0.errors.1',
+                    'Fund code was not found in master data.'
+                ));
 
         $this->assertDatabaseCount('aip_activities', 0);
         $this->assertDatabaseCount('aip_activity_funding_entries', 0);

@@ -117,6 +117,29 @@ class AipImportController extends Controller
                     $errors[] = 'Activity description is required.';
                 }
 
+                $voteCode = $cells[8];
+                $fundCode = $cells[9];
+
+                if ($voteCode !== '') {
+                    $voteExists = DB::table('votes')
+                        ->where('code', $voteCode)
+                        ->exists();
+
+                    if (! $voteExists) {
+                        $errors[] = 'Vote code was not found in master data.';
+                    }
+                }
+
+                if ($fundCode !== '') {
+                    $fundExists = DB::table('funds')
+                        ->where('code', $fundCode)
+                        ->exists();
+
+                    if (! $fundExists) {
+                        $errors[] = 'Fund code was not found in master data.';
+                    }
+                }
+
                 $rows[] = [
                     'row_number' => $rowNumber,
                     'serial_number' => $cells[0],
