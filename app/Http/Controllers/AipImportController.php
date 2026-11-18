@@ -165,17 +165,34 @@ class AipImportController extends Controller
                 }
             }
 
-            $existingNumbers = DB::table('aip_activities')
-                ->where('financial_year_id', $year->id)
-                ->whereIn('activity_number', array_keys($numberRows))
-                ->pluck('activity_number')
-                ->map(fn ($number) => (string) $number)
-                ->all();
+            $existing = [];
+            foreach (array_chunk(array_keys($numberRows), 500) as $numbers) {
+                $activities = DB::table('aip_activities as activity')
+                    ->leftJoin('aip_activity_offices as link', function ($join) use ($office) {
+                        $join->on('link.aip_activity_id', '=', 'activity.id')
+                            ->where('link.office_id', '=', $office->id);
+                    })
+                    ->where('activity.financial_year_id', $year->id)
+                    ->whereIn('activity.activity_number', $numbers)
+                    ->get(['activity.activity_number', 'activity.description', 'link.id as office_link_id']);
+
+                foreach ($activities as $activity) {
+                    $existing['n'.(string) $activity->activity_number] = $activity;
+                }
+            }
 
             foreach ($rows as &$row) {
-                if (in_array($row['activity_number'], $existingNumbers, true)) {
-                    $row['errors'][] =
-                        'Activity number already exists for this financial year.';
+                $activity = $existing['n'.$row['activity_number']] ?? null;
+                if ($activity !== null) {
+                    $row['errors'][] = 'Activity already exists for this financial year; review its existing details before importing.';
+
+                    if (trim((string) $activity->description) !== $row['activity']) {
+                        $row['errors'][] = 'The activity description differs from the existing activity.';
+                    }
+
+                    if ($activity->office_link_id !== null) {
+                        $row['errors'][] = 'This activity is already linked to the selected office.';
+                    }
                 }
             }
             unset($row);
