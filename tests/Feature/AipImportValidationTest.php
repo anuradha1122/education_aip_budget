@@ -400,6 +400,53 @@ class AipImportValidationTest extends TestCase
         $this->assertDatabaseCount('aip_funding_entry_audit_events', 0);
     }
 
+    public function test_existing_activity_vote_conflicts_are_reported_without_saving(): void
+    {
+        $year = $this->year();
+        $office = $this->office();
+        $fund = DB::table('funds')->insertGetId([
+            'code' => 'PF', 'name' => 'Provincial fund', 'is_active' => true,
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+        $vote = DB::table('votes')->insertGetId([
+            'code' => 'V1', 'description' => 'First vote', 'is_active' => true,
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+        DB::table('votes')->insert([
+            'code' => 'V2', 'description' => 'Second vote', 'is_active' => true,
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+        foreach (['123', '124', '126'] as $number) {
+            $activity = DB::table('aip_activities')->insertGetId([
+                'financial_year_id' => $year, 'activity_number' => $number,
+                'description' => 'Science seminar', 'created_at' => now(), 'updated_at' => now(),
+            ]);
+            if ($number !== '126') {
+                DB::table('aip_activity_funding_entries')->insert([
+                    'aip_activity_id' => $activity, 'vote_id' => $vote, 'fund_id' => $fund,
+                    'created_at' => now(), 'updated_at' => now(),
+                ]);
+            }
+        }
+        $file = $this->workbook([
+            [1, 'Zonal', '123', 'Science seminar', '', '', '', '', 'V2', 'PF'],
+            [2, 'Zonal', '124', 'Science seminar', '', '', '', '', 'V1', 'PF'],
+            [3, 'Zonal', '125', 'New activity', '', '', '', '', 'V2', 'PF'],
+            [4, 'Zonal', '126', 'Science seminar', '', '', '', '', 'V2', 'PF'],
+        ]);
+        $this->actingAs($this->admin())->post('/aip-activities/import/validate', [
+            'financial_year_id' => $year, 'office_id' => $office, 'file' => $file,
+        ])->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->where('result.rows.0.errors.1', 'Vote differs from the existing vote for this activity.')
+            ->has('result.rows.1.errors', 1)
+            ->has('result.rows.2.errors', 0)
+            ->has('result.rows.3.errors', 1));
+        $this->assertDatabaseCount('aip_activities', 3);
+        $this->assertDatabaseCount('aip_activity_funding_entries', 2);
+        $this->assertDatabaseCount('aip_activity_offices', 0);
+        $this->assertDatabaseCount('aip_funding_entry_audit_events', 0);
+    }
+
     public function test_unknown_vote_and_fund_codes_are_reported(): void
     {
         $year = $this->year();

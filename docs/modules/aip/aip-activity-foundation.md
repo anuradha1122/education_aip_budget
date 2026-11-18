@@ -206,8 +206,10 @@ test suite and acceptance testing must be run again for the completed module.
 - Existing activities are flagged for review; reuse across office files has
   not been implemented. Imported activity–office links, office-specific
   assignments and funding entries are not yet saved.
-- The import must validate that a common activity uses its existing fund and
-  vote, and handle any conflicts without overwriting existing data.
+- Preliminary review reports known fund or vote values that conflict with
+  existing funding entries. The reviewed save workflow must revalidate the
+  common activity and its funding and handle conflicts without overwriting
+  existing data.
 - Vote and fund validation should be tested with a full-size annual AIP
   workbook and improved if necessary.
 

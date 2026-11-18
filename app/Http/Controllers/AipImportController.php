@@ -249,6 +249,16 @@ class AipImportController extends Controller
                             $row['errors'][] = 'Fund differs from the existing fund for this activity.';
                         }
                     }
+
+                    if ($row['vote'] !== '') {
+                        $voteId = DB::table('votes')->where('code', $row['vote'])->value('id');
+                        if ($voteId !== null && DB::table('aip_activity_funding_entries')
+                            ->where('aip_activity_id', $activity->id)
+                            ->where('vote_id', '<>', $voteId)
+                            ->exists()) {
+                            $row['errors'][] = 'Vote differs from the existing vote for this activity.';
+                        }
+                    }
                 }
             }
             unset($row);
