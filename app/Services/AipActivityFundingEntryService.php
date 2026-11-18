@@ -2,10 +2,10 @@
 
 namespace App\Services;
 
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
-use App\Models\User;
 
 class AipActivityFundingEntryService
 {
@@ -28,6 +28,7 @@ class AipActivityFundingEntryService
                 ]);
             }
 
+            // Lock the year before checking and creating funding entries.
             $year = DB::table('financial_years')
                 ->where('id', $activity->financial_year_id)
                 ->lockForUpdate()
@@ -62,6 +63,17 @@ class AipActivityFundingEntryService
             if (! $fundExists) {
                 throw ValidationException::withMessages([
                     'fund_id' => 'The selected fund does not exist.',
+                ]);
+            }
+
+            $differentFundExists = DB::table('aip_activity_funding_entries')
+                ->where('aip_activity_id', $activity->id)
+                ->where('fund_id', '<>', $validated['fund_id'])
+                ->exists();
+
+            if ($differentFundExists) {
+                throw ValidationException::withMessages([
+                    'fund_id' => 'This activity already has a different fund. An activity can have only one fund.',
                 ]);
             }
 
