@@ -88,6 +88,12 @@ class AipActivityFundingEntryService
                 ]);
             }
 
+            if (DB::table('aip_activity_funding_entries')->where('aip_activity_id', $activity->id)->exists()) {
+                throw ValidationException::withMessages([
+                    'aip_activity_id' => 'This activity already has a funding entry.',
+                ]);
+            }
+
             $entryId = DB::table('aip_activity_funding_entries')->insertGetId([
                 'aip_activity_id' => $activity->id,
                 'vote_id' => $validated['vote_id'],

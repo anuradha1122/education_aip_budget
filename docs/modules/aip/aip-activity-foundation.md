@@ -141,14 +141,14 @@ format does not have a programme-type column.
 ### Vote and fund entries
 
 - `aip_activity_funding_entries` stores activity, vote and fund entries.
-  Its existing database schema still permits conflicting funds and duplicates.
+  The database permits at most one funding entry for each activity.
 - The referenced activity, vote and fund must exist.
 - `AipActivityFundingEntryService` checks the references and rejects new
   entries for a closed financial year.
 - The service records a creation audit event in the same transaction.
 - The funding service rejects a different fund or vote for an activity that
   already has one; a rejected entry creates no funding entry or audit event.
-  Direct database writes are not protected by these service checks.
+  The database also prevents a second funding entry for the same activity.
 - Users with `manage-master-data` permission can assign votes and funds
   and view existing entries. The page passes the signed-in user to the
   service.
@@ -218,9 +218,9 @@ test suite and acceptance testing must be run again for the completed module.
 - Activity update actions and update audit recording are not yet implemented.
 - Correction or ending of activity–office links is not yet implemented.
 - Funding-entry correction and an audit history page are not yet implemented.
-- The service rejects different funds and votes for one activity, but the
-  database does not yet enforce these rules. Repeated combinations are still
-  possible; correction and duplicate-handling rules need implementation.
+- The database prevents a second funding entry for an activity. Funding-entry
+  correction remains to be implemented. The service rejects duplicate
+  requests with a validation error.
 - Rules for selecting inactive offices, votes and funds still need confirmation.
 
 ### Financial-year and access controls
