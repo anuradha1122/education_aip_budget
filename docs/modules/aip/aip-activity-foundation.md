@@ -25,8 +25,8 @@ The same activity may be used by multiple offices.
 - New activity numbers must contain digits only.
 - Activity numbers are stored as text so that leading zeros, such as `001`,
   are preserved.
-- One common activity number is used across the province and zones for the
-  same activity in a financial year.
+- One common activity number is used across offices for the same activity
+  in a financial year. A different provincial activity has a different number.
 
 ### Programme level
 
@@ -40,13 +40,17 @@ The same activity may be used by multiple offices.
 - An officer may be assigned to multiple subjects in the same office.
 - A subject may have multiple officers in the same office.
 - A common activity may be linked to multiple offices.
-- Each office has its own allocation and spending for an activity. The
-  allocation and spending features are not yet implemented.
+- Each office has its own responsible officer, allocation and spending.
+  Allocation and spending features are not yet implemented.
+- Provincial activities may differ from zonal activities; different activities
+  have different numbers within the same financial year.
 
 ### Votes and funds
 
 - A vote may be used by multiple activities.
-- An activity may have multiple funds and vote entries.
+- Each activity has one fund shared by all offices linked to it.
+- Offices share the vote for a common activity. Different activities may
+  have different funds or votes.
 - Votes and funds may be the same or different across activities.
 - Votes and funds are assigned manually in the AIP data. The system must
   not assume that one fund always has one vote.
@@ -66,7 +70,10 @@ The corrected AIP format contains these ten columns:
 9. Vote
 10. Fund
 
-The user will select the financial year when importing.
+The provincial main administrator will upload eight separate files: one for
+the province and one for each of seven zones. The administrator selects the
+financial year and office for each file. An activity number appears at most
+once within an office workbook.
 
 Training and meeting are programme types, not funds. The corrected AIP
 format does not have a programme-type column.
@@ -111,6 +118,8 @@ format does not have a programme-type column.
 - An assignment can be ended without deleting its record. Ending it records
   an audit event.
 - A previously ended pair can be assigned again as a new record.
+- The officer–subject assignments page is linked from the sidebar for users
+  with the relevant permission.
 
 ### Activity–office links
 
@@ -120,18 +129,26 @@ format does not have a programme-type column.
   prevents link creation for a closed financial year.
 - Link creation through the service records an audit event in the same
   transaction.
+- Office links have optional office-specific subject and officer fields. If
+  either is supplied to the service, both are required; both must belong to
+  the selected office and have an active assignment. The IDs are audited.
+- Existing activity-level subject and officer fields have not been migrated
+  to office links, and the link page and import do not yet use the new fields.
 - Users with `manage-master-data` permission can create and view links.
   The page passes the signed-in user to the service and resets after a
   successful link.
 
 ### Vote and fund entries
 
-- `aip_activity_funding_entries` can link an activity to multiple vote and
-  fund entries.
+- `aip_activity_funding_entries` stores activity, vote and fund entries.
+  Its existing database schema still permits conflicting funds and duplicates.
 - The referenced activity, vote and fund must exist.
 - `AipActivityFundingEntryService` checks the references and rejects new
   entries for a closed financial year.
 - The service records a creation audit event in the same transaction.
+- The funding service rejects a different fund for an activity that already
+  has one; a rejected entry creates no funding entry or audit event. Direct
+  database writes are not protected by this service check.
 - Users with `manage-master-data` permission can assign votes and funds
   and view existing entries. The page passes the signed-in user to the
   service.
@@ -169,14 +186,28 @@ test suite and acceptance testing must be run again for the completed module.
 
 - The preliminary AIP import page requires the user to select a financial
   year and an office, and displays both with the review results.
+- Preliminary review checks supplied subject codes and officer names against
+  the selected office, compares supplied designations, and checks active
+  officer–subject assignments when both records are uniquely matched.
+- Office-specific subject and officer service checks passed for two offices,
+  incorrect offices, missing or ended assignments, and audit recording.
+- The one-fund service test and funding regression tests passed. A read-only
+  check of the development database found no activities with multiple funds.
+  This result applies only to that database at the time of the check.
 
 ## Not yet implemented or confirmed
 
 ### Annual import
 
-- Subject, officer and designation matching and reviewed saving are not
-  yet implemented. Blank vote and fund values and inactive references are
-  not yet rejected. The import must not silently discard vote or fund values.
+- Reviewed saving is not implemented. Preliminary checks do not establish
+  that a workbook is ready to save. Blank fields, subject names and inactive
+  references still need agreed validation rules. The import must not silently
+  discard vote or fund values.
+- Existing activities are flagged for review; reuse across office files has
+  not been implemented. Imported activity–office links, office-specific
+  assignments and funding entries are not yet saved.
+- The import must validate that a common activity uses its existing fund and
+  vote, and handle any conflicts without overwriting existing data.
 - Vote and fund validation should be tested with a full-size annual AIP
   workbook and improved if necessary.
 
@@ -185,8 +216,9 @@ test suite and acceptance testing must be run again for the completed module.
 - Activity update actions and update audit recording are not yet implemented.
 - Correction or ending of activity–office links is not yet implemented.
 - Funding-entry correction and an audit history page are not yet implemented.
-- The rules for duplicate activity–vote–fund entries still need confirmation.
-  The current funding-entry service allows repeated combinations.
+- The service rejects different funds for one activity, but the database does
+  not yet enforce one fund per activity. Repeated combinations are still
+  possible; correction and duplicate-handling rules need implementation.
 - Rules for selecting inactive offices, votes and funds still need confirmation.
 
 ### Financial-year and access controls
@@ -195,8 +227,9 @@ test suite and acceptance testing must be run again for the completed module.
   enforced across every future AIP action or direct database write.
 - The financial-year closing and reopening workflow, including concurrent
   changes, needs review.
-- Final AIP permissions, roles and office-scoped access need confirmation
-  and testing.
+- Provincial main administrators must be able to view all offices; zonal
+  users must see only their own office and subject directors their own records.
+  These access rules and their tests are not yet implemented.
 - English-only validation for AIP activity descriptions is not yet enforced.
 
 ### Historical data
@@ -219,7 +252,11 @@ test suite and acceptance testing must be run again for the completed module.
 
 - Office-specific allocations and expenditure have not been implemented.
 - The relationships between office allocations, funding entries and
-  expenditure require further design.
+  expenditure require further design. Estimates are records and do not reduce
+  allocations. Final actual expenditure after the programme reduces the
+  corresponding office allocation. The accounts branch handles payment.
+- Zonal subject directors prepare estimates; zonal administrators can approve
+  them. These roles and workflows require implementation and testing.
 - AIP reporting and reconciliation remain to be completed.
 
 ## Dependencies and completion
@@ -235,10 +272,3 @@ Before M05 is reported as complete:
 - Complete relevant audit and correction checks.
 - Run the relevant automated tests and browser acceptance checks.
 - Review the module documentation and prepare the completion report.
-
-- The selected office is not yet used for subject or officer matching or
-  saved with an import. Existing common activities are still reported as
-  duplicates, so separate office files cannot yet be imported.
-- The provincial main administrator must be able to upload separate AIP
-  files for all eight offices. Final office-scoped permissions remain to be
-  implemented and tested.
