@@ -169,8 +169,8 @@ export default function AipImport({ years, offices, result }: Props) {
 
                         <p className="mt-2 text-sm">Office: {result.office.code} — {result.office.name}</p>
                         <p className="mt-2 text-sm">
-                            This preliminary check covers activity numbers, descriptions, and whether supplied vote and fund codes exist.
-                            Subject, officer and designation matching and blank vote and fund fields are not yet checked. No rows have been saved.
+                            This preliminary check covers activity numbers, descriptions, supplied vote and fund codes, and supplied subject codes for the selected office.
+                            Blank subject, vote and fund fields, subject names, officer and designation matching, and inactive references are not yet checked. No rows have been saved.
                         </p>
 
                         <div className="mt-3 overflow-x-auto">

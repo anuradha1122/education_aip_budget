@@ -134,6 +134,13 @@ class AipImportController extends Controller
                     $errors[] = 'Fund code was not found in master data.';
                 }
 
+                if ($cells[4] !== '' && ! DB::table('subjects')
+                    ->where('office_id', $office->id)
+                    ->where('code', $cells[4])
+                    ->exists()) {
+                    $errors[] = 'Subject code was not found for the selected office.';
+                }
+
                 $rows[] = [
                     'row_number' => $rowNumber,
                     'serial_number' => $cells[0],

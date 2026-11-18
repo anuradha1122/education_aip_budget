@@ -97,6 +97,7 @@ class AipImportValidationTest extends TestCase
     {
         $year = $this->year();
         $office = $this->office();
+        DB::table('subjects')->insert(['office_id' => $office, 'code' => 'SCI', 'name' => 'Science', 'is_active' => true, 'created_at' => now(), 'updated_at' => now()]);
         DB::table('votes')->insert(['code' => 'VOTE-01', 'description' => 'Example vote', 'is_active' => true, 'created_at' => now(), 'updated_at' => now()]);
         DB::table('funds')->insert(['code' => 'PF', 'name' => 'Example fund', 'is_active' => true, 'created_at' => now(), 'updated_at' => now()]);
 
@@ -231,6 +232,38 @@ class AipImportValidationTest extends TestCase
 
         $this->assertDatabaseCount('aip_activities', 2);
         $this->assertDatabaseCount('aip_activity_offices', 1);
+        $this->assertDatabaseCount('aip_activity_funding_entries', 0);
+    }
+
+    public function test_supplied_subject_codes_are_checked_against_selected_office(): void
+    {
+        $year = $this->year();
+        $office = $this->office();
+        $otherOffice = DB::table('offices')->insertGetId([
+            'code' => 'OFFICE-02', 'name' => 'Other office', 'type' => 'zonal',
+            'is_active' => true, 'created_at' => now(), 'updated_at' => now(),
+        ]);
+        foreach ([[$office, 'SCI'], [$otherOffice, 'MATH']] as [$officeId, $code]) {
+            DB::table('subjects')->insert([
+                'office_id' => $officeId, 'code' => $code, 'name' => 'Subject '.$code,
+                'is_active' => true, 'created_at' => now(), 'updated_at' => now(),
+            ]);
+        }
+        $file = $this->workbook([
+            [1, 'Zonal', '101', 'First', 'SCI'],
+            [2, 'Zonal', '102', 'Second', 'MATH'],
+            [3, 'Zonal', '103', 'Third', 'UNKNOWN'],
+            [4, 'Zonal', '104', 'Fourth', ''],
+        ]);
+        $this->actingAs($this->admin())->post('/aip-activities/import/validate', [
+            'financial_year_id' => $year, 'office_id' => $office, 'file' => $file,
+        ])->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->has('result.rows.0.errors', 0)
+            ->where('result.rows.1.errors.0', 'Subject code was not found for the selected office.')
+            ->where('result.rows.2.errors.0', 'Subject code was not found for the selected office.')
+            ->has('result.rows.3.errors', 0));
+        $this->assertDatabaseCount('aip_activities', 0);
+        $this->assertDatabaseCount('aip_activity_offices', 0);
         $this->assertDatabaseCount('aip_activity_funding_entries', 0);
     }
 
