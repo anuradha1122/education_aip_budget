@@ -141,6 +141,28 @@ class AipImportController extends Controller
                     $errors[] = 'Subject code was not found for the selected office.';
                 }
 
+                $officerName = $cells[6];
+                $designationName = $cells[7];
+                if ($officerName !== '') {
+                    $matches = DB::table('officers')
+                        ->where('office_id', $office->id)
+                        ->where('name', $officerName)
+                        ->limit(2)
+                        ->get(['id', 'designation_id']);
+                    if ($matches->isEmpty()) {
+                        $errors[] = 'Officer name was not found for the selected office.';
+                    } elseif ($matches->count() > 1) {
+                        $errors[] = 'Officer name matches more than one record in the selected office.';
+                    } elseif ($designationName !== '' && ! DB::table('designations')
+                        ->where('id', $matches[0]->designation_id)
+                        ->where('name', $designationName)
+                        ->exists()) {
+                        $errors[] = 'Designation does not match the selected officer.';
+                    }
+                } elseif ($designationName !== '') {
+                    $errors[] = 'Designation cannot be checked without an officer name.';
+                }
+
                 $rows[] = [
                     'row_number' => $rowNumber,
                     'serial_number' => $cells[0],

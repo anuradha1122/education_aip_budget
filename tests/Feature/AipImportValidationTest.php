@@ -98,6 +98,8 @@ class AipImportValidationTest extends TestCase
         $year = $this->year();
         $office = $this->office();
         DB::table('subjects')->insert(['office_id' => $office, 'code' => 'SCI', 'name' => 'Science', 'is_active' => true, 'created_at' => now(), 'updated_at' => now()]);
+        $designationId = DB::table('designations')->insertGetId(['code' => 'DES-01', 'name' => 'Designation', 'is_active' => true, 'created_at' => now(), 'updated_at' => now()]);
+        DB::table('officers')->insert(['office_id' => $office, 'designation_id' => $designationId, 'name' => 'Officer', 'is_active' => true, 'created_at' => now(), 'updated_at' => now()]);
         DB::table('votes')->insert(['code' => 'VOTE-01', 'description' => 'Example vote', 'is_active' => true, 'created_at' => now(), 'updated_at' => now()]);
         DB::table('funds')->insert(['code' => 'PF', 'name' => 'Example fund', 'is_active' => true, 'created_at' => now(), 'updated_at' => now()]);
 
@@ -262,6 +264,44 @@ class AipImportValidationTest extends TestCase
             ->where('result.rows.1.errors.0', 'Subject code was not found for the selected office.')
             ->where('result.rows.2.errors.0', 'Subject code was not found for the selected office.')
             ->has('result.rows.3.errors', 0));
+        $this->assertDatabaseCount('aip_activities', 0);
+        $this->assertDatabaseCount('aip_activity_offices', 0);
+        $this->assertDatabaseCount('aip_activity_funding_entries', 0);
+    }
+
+    public function test_officer_and_designation_are_checked_for_the_selected_office(): void
+    {
+        $year = $this->year();
+        $office = $this->office();
+        $otherOffice = DB::table('offices')->insertGetId([
+            'code' => 'OFFICE-02', 'name' => 'Other office', 'type' => 'zonal',
+            'is_active' => true, 'created_at' => now(), 'updated_at' => now(),
+        ]);
+        $designation = DB::table('designations')->insertGetId([
+            'code' => 'DIR', 'name' => 'Director', 'is_active' => true,
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+        foreach ([[$office, 'Officer One'], [$otherOffice, 'Officer Two']] as [$officeId, $name]) {
+            DB::table('officers')->insert([
+                'office_id' => $officeId, 'designation_id' => $designation,
+                'name' => $name, 'is_active' => true, 'created_at' => now(), 'updated_at' => now(),
+            ]);
+        }
+        $file = $this->workbook([
+            [1, 'Zonal', '101', 'First', '', '', 'Officer One', 'Director'],
+            [2, 'Zonal', '102', 'Second', '', '', 'Officer Two', 'Director'],
+            [3, 'Zonal', '103', 'Third', '', '', 'Officer One', 'Teacher'],
+            [4, 'Zonal', '104', 'Fourth', '', '', '', 'Director'],
+            [5, 'Zonal', '105', 'Fifth', '', '', '', ''],
+        ]);
+        $this->actingAs($this->admin())->post('/aip-activities/import/validate', [
+            'financial_year_id' => $year, 'office_id' => $office, 'file' => $file,
+        ])->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->has('result.rows.0.errors', 0)
+            ->where('result.rows.1.errors.0', 'Officer name was not found for the selected office.')
+            ->where('result.rows.2.errors.0', 'Designation does not match the selected officer.')
+            ->where('result.rows.3.errors.0', 'Designation cannot be checked without an officer name.')
+            ->has('result.rows.4.errors', 0));
         $this->assertDatabaseCount('aip_activities', 0);
         $this->assertDatabaseCount('aip_activity_offices', 0);
         $this->assertDatabaseCount('aip_activity_funding_entries', 0);
