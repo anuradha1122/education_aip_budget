@@ -220,7 +220,7 @@ class AipImportController extends Controller
                     })
                     ->where('activity.financial_year_id', $year->id)
                     ->whereIn('activity.activity_number', $numbers)
-                    ->get(['activity.activity_number', 'activity.description', 'link.id as office_link_id']);
+                    ->get(['activity.id', 'activity.activity_number', 'activity.description', 'link.id as office_link_id']);
 
                 foreach ($activities as $activity) {
                     $existing['n'.(string) $activity->activity_number] = $activity;
@@ -238,6 +238,16 @@ class AipImportController extends Controller
 
                     if ($activity->office_link_id !== null) {
                         $row['errors'][] = 'This activity is already linked to the selected office.';
+                    }
+
+                    if ($row['fund'] !== '') {
+                        $fundId = DB::table('funds')->where('code', $row['fund'])->value('id');
+                        if ($fundId !== null && DB::table('aip_activity_funding_entries')
+                            ->where('aip_activity_id', $activity->id)
+                            ->where('fund_id', '<>', $fundId)
+                            ->exists()) {
+                            $row['errors'][] = 'Fund differs from the existing fund for this activity.';
+                        }
                     }
                 }
             }

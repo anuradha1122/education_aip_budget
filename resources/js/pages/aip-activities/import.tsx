@@ -170,7 +170,7 @@ export default function AipImport({ years, offices, result }: Props) {
                         <p className="mt-2 text-sm">Office: {result.office.code} — {result.office.name}</p>
                         <p className="mt-2 text-sm">
                             This preliminary check covers activity numbers, descriptions, supplied vote and fund codes, and supplied subject codes for the selected office.
-                            Supplied officer names are checked within the selected office; supplied designations are compared with the matching officer. When both the officer and subject match uniquely, their active assignment is checked. Blank fields, subject names and inactive references are not yet checked. No rows have been saved.
+                            Supplied officer names are checked within the selected office; supplied designations are compared with the matching officer. When both the officer and subject match uniquely, their active assignment is checked. For an existing activity, a supplied known fund is checked against its funding entries. Blank fields, subject names, vote conflicts and inactive references are not yet checked. No rows have been saved.
                         </p>
 
                         <div className="mt-3 overflow-x-auto">
