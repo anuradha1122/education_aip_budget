@@ -7,6 +7,8 @@ type Year = {
     year: number;
 };
 
+type Office = { id: number; code: string; name: string; is_active: boolean | number };
+
 type ImportRow = {
     row_number: number;
     serial_number: string;
@@ -24,18 +26,22 @@ type ImportRow = {
 
 type Props = {
     years: Year[];
+    offices: Office[];
     result: {
         financial_year: number;
+        office: { code: string; name: string };
         rows: ImportRow[];
     } | null;
 };
 
-export default function AipImport({ years, result }: Props) {
+export default function AipImport({ years, offices, result }: Props) {
     const { data, setData, post, processing, errors } = useForm<{
         financial_year_id: string;
+        office_id: string;
         file: File | null;
     }>({
         financial_year_id: '',
+        office_id: '',
         file: null,
     });
 
@@ -113,6 +119,21 @@ export default function AipImport({ years, result }: Props) {
                     )}
 
                     <label>
+                        Office
+                        <select required value={data.office_id}
+                            onChange={(event) => setData('office_id', event.target.value)}
+                            className="mt-1 block w-full rounded border bg-background p-2">
+                            <option value="">Select an office</option>
+                            {offices.map((office) => (
+                                <option key={office.id} value={office.id}>
+                                    {office.code} — {office.name}{Number(office.is_active) === 0 ? ' (inactive)' : ''}
+                                </option>
+                            ))}
+                        </select>
+                    </label>
+                    {errors.office_id && <p className="text-sm text-red-600">{errors.office_id}</p>}
+
+                    <label>
                         Excel workbook
                         <input
                             type="file"
@@ -146,54 +167,44 @@ export default function AipImport({ years, result }: Props) {
                             Review for {result.financial_year}
                         </h2>
 
+                        <p className="mt-2 text-sm">Office: {result.office.code} — {result.office.name}</p>
                         <p className="mt-2 text-sm">
-                            This preliminary check covers activity numbers, descriptions, and
-                            whether supplied vote and fund codes exist. Subject, officer and
-                            designation matching are not yet validated. Blank vote and fund
-                            fields are not yet checked. No rows have been saved.
+                            This preliminary check covers activity numbers, descriptions, and whether supplied vote and fund codes exist.
+                            Subject, officer and designation matching and blank vote and fund fields are not yet checked. No rows have been saved.
                         </p>
 
                         <div className="mt-3 overflow-x-auto">
                             <table className="w-full text-left text-sm">
-                                <thead>
-                                    <tr className="border-b">
-                                        <th className="p-2">Excel row</th>
-                                        <th className="p-2">Serial number</th>
-                                        <th className="p-2">Level</th>
-                                        <th className="p-2">Activity number</th>
-                                        <th className="p-2">Activity</th>
-                                        <th className="p-2">Subject code</th>
-                                        <th className="p-2">Subject</th>
-                                        <th className="p-2">Officer</th>
-                                        <th className="p-2">Designation</th>
-                                        <th className="p-2">Vote</th>
-                                        <th className="p-2">Fund</th>
-                                        <th className="p-2">Preliminary errors</th>
+                                <thead><tr className="border-b">
+                                    <th className="p-2">Excel row</th>
+                                    <th className="p-2">Serial number</th>
+                                    <th className="p-2">Level</th>
+                                    <th className="p-2">Activity number</th>
+                                    <th className="p-2">Activity</th>
+                                    <th className="p-2">Subject code</th>
+                                    <th className="p-2">Subject</th>
+                                    <th className="p-2">Officer</th>
+                                    <th className="p-2">Designation</th>
+                                    <th className="p-2">Vote</th>
+                                    <th className="p-2">Fund</th>
+                                    <th className="p-2">Preliminary errors</th>
+                                </tr></thead>
+                                <tbody>{result.rows.map((row) => (
+                                    <tr key={row.row_number} className="border-b">
+                                        <td className="p-2">{row.row_number}</td>
+                                        <td className="p-2">{row.serial_number}</td>
+                                        <td className="p-2">{row.level}</td>
+                                        <td className="p-2">{row.activity_number}</td>
+                                        <td className="p-2">{row.activity}</td>
+                                        <td className="p-2">{row.subject_code}</td>
+                                        <td className="p-2">{row.subject}</td>
+                                        <td className="p-2">{row.officer}</td>
+                                        <td className="p-2">{row.designation}</td>
+                                        <td className="p-2">{row.vote}</td>
+                                        <td className="p-2">{row.fund}</td>
+                                        <td className="p-2">{row.errors.length > 0 ? row.errors.join(' ') : 'None found'}</td>
                                     </tr>
-                                </thead>
-
-                                <tbody>
-                                    {result.rows.map((row) => (
-                                        <tr key={row.row_number} className="border-b">
-                                            <td className="p-2">{row.row_number}</td>
-                                            <td className="p-2">{row.serial_number}</td>
-                                            <td className="p-2">{row.level}</td>
-                                            <td className="p-2">{row.activity_number}</td>
-                                            <td className="p-2">{row.activity}</td>
-                                            <td className="p-2">{row.subject_code}</td>
-                                            <td className="p-2">{row.subject}</td>
-                                            <td className="p-2">{row.officer}</td>
-                                            <td className="p-2">{row.designation}</td>
-                                            <td className="p-2">{row.vote}</td>
-                                            <td className="p-2">{row.fund}</td>
-                                            <td className="p-2">
-                                                {row.errors.length > 0
-                                                    ? row.errors.join(' ')
-                                                    : 'None found'}
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
+                                ))}</tbody>
                             </table>
                         </div>
                     </section>

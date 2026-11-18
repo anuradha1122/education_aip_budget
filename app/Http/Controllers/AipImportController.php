@@ -29,6 +29,7 @@ class AipImportController extends Controller
     {
         return Inertia::render('aip-activities/import', [
             'years' => $this->openYears(),
+            'offices' => $this->offices(),
             'result' => null,
         ]);
     }
@@ -37,8 +38,15 @@ class AipImportController extends Controller
     {
         $validated = $request->validate([
             'financial_year_id' => ['required', 'integer'],
+            'office_id' => ['required', 'integer'],
             'file' => ['required', 'file', 'mimes:xlsx', 'max:5120'],
         ]);
+
+        $office = DB::table('offices')->where('id', $validated['office_id'])->first();
+
+        if ($office === null) {
+            throw ValidationException::withMessages(['office_id' => 'Select an existing office.']);
+        }
 
         $year = DB::table('financial_years')
             ->where('id', $validated['financial_year_id'])
@@ -119,25 +127,11 @@ class AipImportController extends Controller
 
                 $voteCode = $cells[8];
                 $fundCode = $cells[9];
-
-                if ($voteCode !== '') {
-                    $voteExists = DB::table('votes')
-                        ->where('code', $voteCode)
-                        ->exists();
-
-                    if (! $voteExists) {
-                        $errors[] = 'Vote code was not found in master data.';
-                    }
+                if ($voteCode !== '' && ! DB::table('votes')->where('code', $voteCode)->exists()) {
+                    $errors[] = 'Vote code was not found in master data.';
                 }
-
-                if ($fundCode !== '') {
-                    $fundExists = DB::table('funds')
-                        ->where('code', $fundCode)
-                        ->exists();
-
-                    if (! $fundExists) {
-                        $errors[] = 'Fund code was not found in master data.';
-                    }
+                if ($fundCode !== '' && ! DB::table('funds')->where('code', $fundCode)->exists()) {
+                    $errors[] = 'Fund code was not found in master data.';
                 }
 
                 $rows[] = [
@@ -188,14 +182,21 @@ class AipImportController extends Controller
 
             return Inertia::render('aip-activities/import', [
                 'years' => $this->openYears(),
+                'offices' => $this->offices(),
                 'result' => [
                     'financial_year' => $year->year,
+                    'office' => ['code' => $office->code, 'name' => $office->name],
                     'rows' => $rows,
                 ],
             ]);
         } finally {
             $spreadsheet->disconnectWorksheets();
         }
+    }
+
+    private function offices()
+    {
+        return DB::table('offices')->orderBy('name')->get(['id', 'code', 'name', 'is_active']);
     }
 
     private function openYears()

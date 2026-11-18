@@ -167,6 +167,9 @@ test suite and acceptance testing must be run again for the completed module.
 - Preliminary AIP validation checks whether supplied vote and fund codes
   exist in master data and reports unknown codes by row.
 
+- The preliminary AIP import page requires the user to select a financial
+  year and an office, and displays both with the review results.
+
 ## Not yet implemented or confirmed
 
 ### Annual import
@@ -232,3 +235,10 @@ Before M05 is reported as complete:
 - Complete relevant audit and correction checks.
 - Run the relevant automated tests and browser acceptance checks.
 - Review the module documentation and prepare the completion report.
+
+- The selected office is not yet used for subject or officer matching or
+  saved with an import. Existing common activities are still reported as
+  duplicates, so separate office files cannot yet be imported.
+- The provincial main administrator must be able to upload separate AIP
+  files for all eight offices. Final office-scoped permissions remain to be
+  implemented and tested.

@@ -27,6 +27,14 @@ class AipImportValidationTest extends TestCase
         ]);
     }
 
+    private function office(): int
+    {
+        return DB::table('offices')->insertGetId([
+            'code' => 'OFFICE-01', 'name' => 'Example office', 'type' => 'zonal',
+            'is_active' => true, 'created_at' => now(), 'updated_at' => now(),
+        ]);
+    }
+
     private function admin(): User
     {
         $user = User::factory()->create();
@@ -88,22 +96,9 @@ class AipImportValidationTest extends TestCase
     public function test_admin_can_review_without_saving(): void
     {
         $year = $this->year();
-
-        DB::table('votes')->insert([
-            'code' => 'VOTE-01',
-            'description' => 'Example vote',
-            'is_active' => true,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-
-        DB::table('funds')->insert([
-            'code' => 'PF',
-            'name' => 'Example fund',
-            'is_active' => true,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        $office = $this->office();
+        DB::table('votes')->insert(['code' => 'VOTE-01', 'description' => 'Example vote', 'is_active' => true, 'created_at' => now(), 'updated_at' => now()]);
+        DB::table('funds')->insert(['code' => 'PF', 'name' => 'Example fund', 'is_active' => true, 'created_at' => now(), 'updated_at' => now()]);
 
         $file = $this->workbook([
             [1, 'Zonal', '123', 'Science seminar', 'SCI', 'Science',
@@ -113,12 +108,15 @@ class AipImportValidationTest extends TestCase
         $this->actingAs($this->admin())
             ->post('/aip-activities/import/validate', [
                 'financial_year_id' => $year,
+                'office_id' => $office,
                 'file' => $file,
             ])
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('aip-activities/import')
                 ->where('result.financial_year', 2027)
+                ->where('result.office.code', 'OFFICE-01')
+                ->where('result.office.name', 'Example office')
                 ->where('result.rows.0.activity_number', '123')
                 ->where('result.rows.0.fund', 'PF')
                 ->has('result.rows.0.errors', 0));
@@ -130,6 +128,7 @@ class AipImportValidationTest extends TestCase
     public function test_duplicate_and_invalid_activity_numbers_are_reported(): void
     {
         $year = $this->year();
+        $office = $this->office();
 
         $file = $this->workbook([
             [1, 'Zonal', '123', 'First activity'],
@@ -140,6 +139,7 @@ class AipImportValidationTest extends TestCase
         $this->actingAs($this->admin())
             ->post('/aip-activities/import/validate', [
                 'financial_year_id' => $year,
+                'office_id' => $office,
                 'file' => $file,
             ])
             ->assertOk()
@@ -154,11 +154,13 @@ class AipImportValidationTest extends TestCase
     public function test_a_closed_year_is_rejected(): void
     {
         $year = $this->year(true);
+        $office = $this->office();
         $file = $this->workbook([[1, 'Zonal', '123', 'Example']], false);
 
         $this->actingAs($this->admin())
             ->post('/aip-activities/import/validate', [
                 'financial_year_id' => $year,
+                'office_id' => $office,
                 'file' => $file,
             ])
             ->assertSessionHasErrors('financial_year_id');
@@ -169,6 +171,7 @@ class AipImportValidationTest extends TestCase
     public function test_wrong_template_headers_are_rejected(): void
     {
         $year = $this->year();
+        $office = $this->office();
 
         $file = $this->workbook([
             [1, 'Zonal', '123', 'Example activity'],
@@ -177,6 +180,7 @@ class AipImportValidationTest extends TestCase
         $this->actingAs($this->admin())
             ->post('/aip-activities/import/validate', [
                 'financial_year_id' => $year,
+                'office_id' => $office,
                 'file' => $file,
             ])
             ->assertSessionHasErrors('file');
@@ -184,43 +188,29 @@ class AipImportValidationTest extends TestCase
         $this->assertDatabaseCount('aip_activities', 0);
         $this->assertDatabaseCount('aip_activity_funding_entries', 0);
     }
+    public function test_an_office_is_required_for_validation(): void
+    {
+        $year = $this->year();
+        $file = $this->workbook([[1, 'Zonal', '123', 'Example']]);
+        $this->actingAs($this->admin())->post('/aip-activities/import/validate', [
+            'financial_year_id' => $year, 'file' => $file,
+        ])->assertSessionHasErrors('office_id');
+        $this->assertDatabaseCount('aip_activities', 0);
+        $this->assertDatabaseCount('aip_activity_funding_entries', 0);
+    }
 
     public function test_unknown_vote_and_fund_codes_are_reported(): void
     {
         $year = $this->year();
-
-        $file = $this->workbook([
-            [
-                1,
-                'Zonal',
-                '123',
-                'Science seminar',
-                'SCI',
-                'Science',
-                'Officer',
-                'Designation',
-                'UNKNOWN-VOTE',
-                'UNKNOWN-FUND',
-            ],
-        ]);
-
-        $this->actingAs($this->admin())
-            ->post('/aip-activities/import/validate', [
-                'financial_year_id' => $year,
-                'file' => $file,
-            ])
-            ->assertOk()
-            ->assertInertia(fn (Assert $page) => $page
-                ->where(
-                    'result.rows.0.errors.0',
-                    'Vote code was not found in master data.'
-                )
-                ->where(
-                    'result.rows.0.errors.1',
-                    'Fund code was not found in master data.'
-                ));
-
+        $office = $this->office();
+        $file = $this->workbook([[1, 'Zonal', '123', 'Science seminar', 'SCI', 'Science', 'Officer', 'Designation', 'UNKNOWN-VOTE', 'UNKNOWN-FUND']]);
+        $this->actingAs($this->admin())->post('/aip-activities/import/validate', [
+            'financial_year_id' => $year, 'office_id' => $office, 'file' => $file,
+        ])->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->where('result.rows.0.errors.0', 'Vote code was not found in master data.')
+            ->where('result.rows.0.errors.1', 'Fund code was not found in master data.'));
         $this->assertDatabaseCount('aip_activities', 0);
         $this->assertDatabaseCount('aip_activity_funding_entries', 0);
     }
+
 }
