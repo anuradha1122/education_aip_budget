@@ -77,6 +77,17 @@ class AipActivityFundingEntryService
                 ]);
             }
 
+            $differentVoteExists = DB::table('aip_activity_funding_entries')
+                ->where('aip_activity_id', $activity->id)
+                ->where('vote_id', '<>', $validated['vote_id'])
+                ->exists();
+
+            if ($differentVoteExists) {
+                throw ValidationException::withMessages([
+                    'vote_id' => 'This activity already has a different vote. All offices must use the same vote for the activity.',
+                ]);
+            }
+
             $entryId = DB::table('aip_activity_funding_entries')->insertGetId([
                 'aip_activity_id' => $activity->id,
                 'vote_id' => $validated['vote_id'],
