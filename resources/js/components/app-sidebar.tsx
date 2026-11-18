@@ -108,6 +108,14 @@ export function AppSidebar() {
         });
     }
 
+    if (permissions?.manage_master_data) {
+        mainNavItems.push({
+            title: 'Officer–subject assignments',
+            url: '/officer-subject-assignments',
+            icon: Building2,
+        });
+    }
+
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>

@@ -100,6 +100,11 @@ class AipImportValidationTest extends TestCase
         DB::table('subjects')->insert(['office_id' => $office, 'code' => 'SCI', 'name' => 'Science', 'is_active' => true, 'created_at' => now(), 'updated_at' => now()]);
         $designationId = DB::table('designations')->insertGetId(['code' => 'DES-01', 'name' => 'Designation', 'is_active' => true, 'created_at' => now(), 'updated_at' => now()]);
         DB::table('officers')->insert(['office_id' => $office, 'designation_id' => $designationId, 'name' => 'Officer', 'is_active' => true, 'created_at' => now(), 'updated_at' => now()]);
+        DB::table('officer_subject_assignments')->insert([
+            'officer_id' => DB::table('officers')->where('office_id', $office)->where('name', 'Officer')->value('id'),
+            'subject_id' => DB::table('subjects')->where('office_id', $office)->where('code', 'SCI')->value('id'),
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
         DB::table('votes')->insert(['code' => 'VOTE-01', 'description' => 'Example vote', 'is_active' => true, 'created_at' => now(), 'updated_at' => now()]);
         DB::table('funds')->insert(['code' => 'PF', 'name' => 'Example fund', 'is_active' => true, 'created_at' => now(), 'updated_at' => now()]);
 
@@ -305,6 +310,51 @@ class AipImportValidationTest extends TestCase
         $this->assertDatabaseCount('aip_activities', 0);
         $this->assertDatabaseCount('aip_activity_offices', 0);
         $this->assertDatabaseCount('aip_activity_funding_entries', 0);
+    }
+
+    public function test_review_checks_active_officer_subject_assignments(): void
+    {
+        $year = $this->year();
+        $office = $this->office();
+        $designation = DB::table('designations')->insertGetId([
+            'code' => 'DIR', 'name' => 'Director', 'is_active' => true,
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+        $officer = DB::table('officers')->insertGetId([
+            'office_id' => $office, 'designation_id' => $designation, 'name' => 'Officer One',
+            'is_active' => true, 'created_at' => now(), 'updated_at' => now(),
+        ]);
+        $subjects = [];
+        foreach (['ACTIVE', 'ENDED', 'NONE'] as $code) {
+            $subjects[$code] = DB::table('subjects')->insertGetId([
+                'office_id' => $office, 'code' => $code, 'name' => 'Subject '.$code,
+                'is_active' => true, 'created_at' => now(), 'updated_at' => now(),
+            ]);
+        }
+        $service = app(\App\Services\OfficerSubjectAssignmentService::class);
+        $service->assign(['officer_id' => $officer, 'subject_id' => $subjects['ACTIVE']]);
+        $ended = $service->assign(['officer_id' => $officer, 'subject_id' => $subjects['ENDED']]);
+        $service->end($ended);
+        $file = $this->workbook([
+            [1, 'Zonal', '101', 'First', 'ACTIVE', '', 'Officer One', 'Director'],
+            [2, 'Zonal', '102', 'Second', 'ENDED', '', 'Officer One', 'Director'],
+            [3, 'Zonal', '103', 'Third', 'NONE', '', 'Officer One', 'Director'],
+            [4, 'Zonal', '104', 'Fourth', 'UNKNOWN', '', 'Officer One', 'Director'],
+            [5, 'Zonal', '105', 'Fifth', 'ACTIVE', '', '', ''],
+        ]);
+        $this->actingAs($this->admin())->post('/aip-activities/import/validate', [
+            'financial_year_id' => $year, 'office_id' => $office, 'file' => $file,
+        ])->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->has('result.rows.0.errors', 0)
+            ->where('result.rows.1.errors.0', 'Officer does not have an active assignment to this subject.')
+            ->where('result.rows.2.errors.0', 'Officer does not have an active assignment to this subject.')
+            ->where('result.rows.3.errors.0', 'Subject code was not found for the selected office.')
+            ->has('result.rows.3.errors', 1)
+            ->has('result.rows.4.errors', 0));
+        $this->assertDatabaseCount('aip_activities', 0);
+        $this->assertDatabaseCount('aip_activity_offices', 0);
+        $this->assertDatabaseCount('aip_activity_funding_entries', 0);
+        $this->assertDatabaseCount('officer_subject_assignments', 2);
     }
 
     public function test_unknown_vote_and_fund_codes_are_reported(): void

@@ -134,15 +134,23 @@ class AipImportController extends Controller
                     $errors[] = 'Fund code was not found in master data.';
                 }
 
-                if ($cells[4] !== '' && ! DB::table('subjects')
-                    ->where('office_id', $office->id)
-                    ->where('code', $cells[4])
-                    ->exists()) {
-                    $errors[] = 'Subject code was not found for the selected office.';
+                $subjectMatches = collect();
+                if ($cells[4] !== '') {
+                    $subjectMatches = DB::table('subjects')
+                        ->where('office_id', $office->id)
+                        ->where('code', $cells[4])
+                        ->limit(2)
+                        ->get(['id']);
+                    if ($subjectMatches->isEmpty()) {
+                        $errors[] = 'Subject code was not found for the selected office.';
+                    } elseif ($subjectMatches->count() > 1) {
+                        $errors[] = 'Subject code matches more than one record in the selected office.';
+                    }
                 }
 
                 $officerName = $cells[6];
                 $designationName = $cells[7];
+                $matches = collect();
                 if ($officerName !== '') {
                     $matches = DB::table('officers')
                         ->where('office_id', $office->id)
@@ -161,6 +169,15 @@ class AipImportController extends Controller
                     }
                 } elseif ($designationName !== '') {
                     $errors[] = 'Designation cannot be checked without an officer name.';
+                }
+
+                if ($subjectMatches->count() === 1 && $matches->count() === 1
+                    && ! DB::table('officer_subject_assignments')
+                        ->where('subject_id', $subjectMatches[0]->id)
+                        ->where('officer_id', $matches[0]->id)
+                        ->whereNull('ended_at')
+                        ->exists()) {
+                    $errors[] = 'Officer does not have an active assignment to this subject.';
                 }
 
                 $rows[] = [
