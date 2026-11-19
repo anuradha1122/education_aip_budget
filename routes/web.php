@@ -465,6 +465,9 @@ Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
 
     Route::post('/aip-activities/import/validate', [AipImportController::class, 'validateFile'])
         ->middleware('can:import-aip')->name('aip-activities.import.validate');
+
+    Route::post('/aip-activities/import/save', [AipImportController::class, 'save'])
+        ->middleware('can:import-aip')->name('aip-activities.import.save');
 });
 
 require __DIR__.'/settings.php';

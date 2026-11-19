@@ -71,7 +71,7 @@ export default function AipImport({ years, offices, result }: Props) {
 
                     <p className="mt-2 text-sm text-muted-foreground">
                         Select a financial year and review the workbook.
-                        This step does not save activities.
+                        Reviewing does not save activities; use the save button after checking the results.
                     </p>
 
                     <div className="mt-3 flex flex-wrap gap-6">
@@ -170,8 +170,21 @@ export default function AipImport({ years, offices, result }: Props) {
                         <p className="mt-2 text-sm">Office: {result.office.code} — {result.office.name}</p>
                         <p className="mt-2 text-sm">
                             This preliminary check covers activity numbers, descriptions, supplied vote and fund codes, and supplied subject codes for the selected office.
-                            Subject code, officer, vote and fund are required. Supplied officer names are checked within the selected office; supplied designations are compared with the matching officer. When both the officer and subject match uniquely, their active assignment is checked. For an existing activity, supplied known funds and votes are checked against its funding entries. Subject names and inactive references are not yet checked. No rows have been saved.
+                            Subject code, officer, vote and fund are required. Supplied officer names are checked within the selected office; supplied designations are compared with the matching officer. When both the officer and subject match uniquely, their active assignment is checked. For an existing activity, supplied known funds and votes are checked against its funding entries. Supplied subject names are compared with master data. Inactive references are not yet checked. Reviewing has not saved any rows.
                         </p>
+
+                        <p className="mt-2 text-sm">An existing activity message is informational when the other details match and the office is not already linked. Save rechecks the workbook.</p>
+                        <button
+                            type="button"
+                            className="mt-3 rounded bg-primary px-4 py-2 text-primary-foreground disabled:opacity-50"
+                            disabled={processing || !data.file || result.rows.some((row) => row.errors.some((error) => error !== 'Activity already exists for this financial year; review its existing details before importing.'))}
+                            onClick={() => post('/aip-activities/import/save', { forceFormData: true })}
+                        >
+                            {processing ? 'Saving...' : 'Save reviewed workbook'}
+                        </button>
+                        {errors.file && <p role="alert" className="mt-2 text-sm text-red-600">{errors.file}</p>}
+                        {errors.financial_year_id && <p role="alert" className="mt-2 text-sm text-red-600">{errors.financial_year_id}</p>}
+                        {errors.office_id && <p role="alert" className="mt-2 text-sm text-red-600">{errors.office_id}</p>}
 
                         <div className="mt-3 overflow-x-auto">
                             <table className="w-full text-left text-sm">

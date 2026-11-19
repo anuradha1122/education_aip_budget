@@ -24,6 +24,31 @@ class AipActivityController extends Controller
             }))
             ->orderByDesc('id')->paginate(20)->withQueryString();
 
+        $activityIds = $activities->getCollection()->pluck('id')->all();
+        $officeLinks = DB::table('aip_activity_offices as link')
+            ->join('offices as office', 'office.id', '=', 'link.office_id')
+            ->leftJoin('subjects as subject', 'subject.id', '=', 'link.subject_id')
+            ->leftJoin('officers as officer', 'officer.id', '=', 'link.officer_id')
+            ->whereIn('link.aip_activity_id', $activityIds)
+            ->orderBy('office.name')->orderBy('link.id')
+            ->get([
+                'link.id', 'link.aip_activity_id', 'office.code as office_code',
+                'office.name as office_name', 'subject.code as subject_code',
+                'subject.name as subject_name', 'officer.name as officer_name',
+            ])->groupBy('aip_activity_id');
+        $funding = DB::table('aip_activity_funding_entries as entry')
+            ->join('funds as fund', 'fund.id', '=', 'entry.fund_id')
+            ->join('votes as vote', 'vote.id', '=', 'entry.vote_id')
+            ->whereIn('entry.aip_activity_id', $activityIds)
+            ->get([
+                'entry.aip_activity_id', 'fund.code as fund_code', 'fund.name as fund_name',
+                'vote.code as vote_code', 'vote.description as vote_description',
+            ])->keyBy('aip_activity_id');
+        $activities->getCollection()->each(function ($activity) use ($officeLinks, $funding) {
+            $activity->setAttribute('office_assignments', $officeLinks->get($activity->id, collect())->values()->all());
+            $activity->setAttribute('funding', $funding->get($activity->id));
+        });
+
         $years = DB::table('financial_years')->where('is_closed', false)
             ->orderByDesc('year')->get(['id', 'year']);
         $officers = DB::table('officers')->join('offices', 'offices.id', '=', 'officers.office_id')

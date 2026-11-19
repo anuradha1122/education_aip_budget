@@ -81,9 +81,11 @@ format does not have a programme-type column.
 
 ## Implemented
 
-- Authorised users can upload an AIP workbook for preliminary validation.
-  The page checks the selected financial year, template headings, activity
-  numbers and descriptions, and displays the results without saving rows.
+- Authorised users can review an AIP workbook and submit it for saving. The
+  save repeats validation and uses a transaction to create activities, office
+  links and funding entries. Matching common activities and funding entries
+  are reused. Save integration, full-suite and browser acceptance checks must
+  be completed before the module is considered complete.
 
 ### Activity register
 
@@ -134,7 +136,7 @@ format does not have a programme-type column.
   either is supplied to the service, both are required; both must belong to
   the selected office and have an active assignment. The IDs are audited.
 - Existing activity-level subject and officer fields have not been migrated
-  to office links, and the link page and import do not yet use the new fields.
+  to office links, and the manual link page does not yet use the new fields.
 - Users with `manage-master-data` permission can create and view links.
   The page passes the signed-in user to the service and resets after a
   successful link.
@@ -200,12 +202,14 @@ test suite and acceptance testing must be run again for the completed module.
 
 ### Annual import
 
-- Reviewed saving is not implemented. Preliminary review requires subject
-  code, officer, vote and fund; subject names and inactive references still
-  need agreed validation rules. The import must not silently discard values.
-- Existing activities are flagged for review; reuse across office files has
-  not been implemented. Imported activity–office links, office-specific
-  assignments and funding entries are not yet saved.
+- Preliminary review requires subject code, officer, vote and fund. Supplied
+  subject names must match master data. Rules for inactive references and
+  end-to-end import acceptance need review. Serial numbers are used for review
+  only and are not saved.
+- The save reuses matching existing activities and existing funding entries;
+  the office link stores the subject and officer. Existing activity-level
+  subject and officer values are not copied to the new office link. Matching
+  existing activities are flagged as informational during review.
 - Preliminary review reports known fund or vote values that conflict with
   existing funding entries. The reviewed save workflow must revalidate the
   common activity and its funding and handle conflicts without overwriting
@@ -232,8 +236,8 @@ test suite and acceptance testing must be run again for the completed module.
 - The `import-aip` gate and `can_import_aip` user flag are a permission
   foundation, defaulting to denied. The import review, validation and template
   routes require this gate as well as `manage-master-data`. No account is
-  granted the flag automatically. Import saving and account administration
-  for this flag are not yet implemented.
+  granted the flag automatically. Import saving also requires this gate.
+  Account administration for this flag is not yet implemented.
 - Provincial main administrators must be able to view all offices; zonal
   users must see only their own office and subject directors their own records.
   These access rules and their tests are not yet implemented.

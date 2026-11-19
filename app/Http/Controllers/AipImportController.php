@@ -2,6 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\AipActivityService;
+use App\Services\AipActivityOfficeService;
+use App\Services\AipActivityFundingEntryService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -35,6 +39,20 @@ class AipImportController extends Controller
     }
 
     public function validateFile(Request $request): Response
+    {
+        $request->session()->forget('aip_import_review');
+        $result = $this->reviewFile($request);
+        $request->session()->put('aip_import_review', [
+            'year' => (string) $request->input('financial_year_id'),
+            'office' => (string) $request->input('office_id'),
+            'hash' => hash_file('sha256', $request->file('file')->getRealPath()),
+        ]);
+        return Inertia::render('aip-activities/import', [
+            'years' => $this->openYears(), 'offices' => $this->offices(), 'result' => $result,
+        ]);
+    }
+
+    private function reviewFile(Request $request): array
     {
         $validated = $request->validate([
             'financial_year_id' => ['required', 'integer'],
@@ -125,6 +143,10 @@ class AipImportController extends Controller
                     $errors[] = 'Activity description is required.';
                 }
 
+                if (mb_strlen($cells[1]) > 255) {
+                    $errors[] = 'Programme level must not exceed 255 characters.';
+                }
+
                 $voteCode = $cells[8];
                 $fundCode = $cells[9];
                 if ($voteCode !== '' && ! DB::table('votes')->where('code', $voteCode)->exists()) {
@@ -140,11 +162,13 @@ class AipImportController extends Controller
                         ->where('office_id', $office->id)
                         ->where('code', $cells[4])
                         ->limit(2)
-                        ->get(['id']);
+                        ->get(['id', 'name']);
                     if ($subjectMatches->isEmpty()) {
                         $errors[] = 'Subject code was not found for the selected office.';
                     } elseif ($subjectMatches->count() > 1) {
                         $errors[] = 'Subject code matches more than one record in the selected office.';
+                    } elseif ($cells[5] !== '' && trim((string) $subjectMatches[0]->name) !== $cells[5]) {
+                        $errors[] = 'Subject name differs from master data.';
                     }
                 }
 
@@ -220,7 +244,7 @@ class AipImportController extends Controller
                     })
                     ->where('activity.financial_year_id', $year->id)
                     ->whereIn('activity.activity_number', $numbers)
-                    ->get(['activity.id', 'activity.activity_number', 'activity.description', 'link.id as office_link_id']);
+                    ->get(['activity.id', 'activity.activity_number', 'activity.description', 'activity.level', 'link.id as office_link_id']);
 
                 foreach ($activities as $activity) {
                     $existing['n'.(string) $activity->activity_number] = $activity;
@@ -234,6 +258,10 @@ class AipImportController extends Controller
 
                     if (trim((string) $activity->description) !== $row['activity']) {
                         $row['errors'][] = 'The activity description differs from the existing activity.';
+                    }
+
+                    if (($activity->level ?? '') !== '' && $activity->level !== $row['level']) {
+                        $row['errors'][] = 'Programme level differs from the existing activity.';
                     }
 
                     if ($activity->office_link_id !== null) {
@@ -273,18 +301,115 @@ class AipImportController extends Controller
             }
             unset($row);
 
-            return Inertia::render('aip-activities/import', [
-                'years' => $this->openYears(),
-                'offices' => $this->offices(),
-                'result' => [
-                    'financial_year' => $year->year,
-                    'office' => ['code' => $office->code, 'name' => $office->name],
-                    'rows' => $rows,
-                ],
-            ]);
+            return [
+                'financial_year' => $year->year,
+                'office' => ['code' => $office->code, 'name' => $office->name],
+                'rows' => $rows,
+            ];
         } finally {
             $spreadsheet->disconnectWorksheets();
         }
+    }
+
+    public function save(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'financial_year_id' => ['required', 'integer'],
+            'office_id' => ['required', 'integer'],
+            'file' => ['required', 'file', 'mimes:xlsx', 'max:5120'],
+        ]);
+        $review = $request->session()->get('aip_import_review');
+        $hash = hash_file('sha256', $request->file('file')->getRealPath());
+        if (! is_array($review)
+            || ($review['year'] ?? null) !== (string) $request->input('financial_year_id')
+            || ($review['office'] ?? null) !== (string) $request->input('office_id')
+            || ! is_string($review['hash'] ?? null)
+            || ! hash_equals($review['hash'], $hash)) {
+            throw ValidationException::withMessages(['file' => 'Review this workbook for the selected year and office before saving.']);
+        }
+
+        try {
+            DB::transaction(function () use ($request) {
+            // Serialize with year closing and the existing creation services.
+            $year = DB::table('financial_years')->where('id', $request->input('financial_year_id'))
+                ->lockForUpdate()->first();
+            if ($year === null || (bool) $year->is_closed) {
+                throw ValidationException::withMessages(['financial_year_id' => 'Select an existing open financial year.']);
+            }
+            $office = DB::table('offices')->where('id', $request->input('office_id'))->lockForUpdate()->first();
+            if ($office === null) {
+                throw ValidationException::withMessages(['office_id' => 'Select an existing office.']);
+            }
+            $result = $this->reviewFile($request);
+            $notice = 'Activity already exists for this financial year; review its existing details before importing.';
+            foreach ($result['rows'] as $row) {
+                $blocking = array_filter($row['errors'], fn ($error) => $error !== $notice);
+                if (count($blocking) > 0) {
+                    throw ValidationException::withMessages(['file' => 'Workbook validation changed or has errors. Review it again before saving.']);
+                }
+            }
+            foreach ($result['rows'] as $row) {
+                $officers = DB::table('officers')->where('office_id', $office->id)
+                    ->where('name', $row['officer'])->limit(2)->lockForUpdate()->get();
+                $subjects = DB::table('subjects')->where('office_id', $office->id)
+                    ->where('code', $row['subject_code'])->limit(2)->lockForUpdate()->get();
+                if ($officers->count() !== 1 || $subjects->count() !== 1) {
+                    throw ValidationException::withMessages(['file' => 'Master data changed or is ambiguous. Review the workbook again.']);
+                }
+                $officer = $officers[0];
+                $subject = $subjects[0];
+                $voteId = DB::table('votes')->where('code', $row['vote'])->value('id');
+                $fundId = DB::table('funds')->where('code', $row['fund'])->value('id');
+                if ($subject === null || $officer === null || $voteId === null || $fundId === null) {
+                    throw ValidationException::withMessages(['file' => 'Master data changed. Review the workbook again.']);
+                }
+                if ($row['designation'] !== '' && ! DB::table('designations')->where('id', $officer->designation_id)->where('name', $row['designation'])->lockForUpdate()->exists()) {
+                    throw ValidationException::withMessages(['file' => 'A designation changed. Review the workbook again.']);
+                }
+                if ($row['subject'] !== '' && trim((string) $subject->name) !== $row['subject']) {
+                    throw ValidationException::withMessages(['file' => 'A subject name differs from master data. Review the workbook.']);
+                }
+                $activity = DB::table('aip_activities')->where('financial_year_id', $year->id)
+                    ->where('activity_number', $row['activity_number'])->lockForUpdate()->first();
+                if ($activity !== null && trim((string) $activity->description) !== $row['activity']) {
+                    throw ValidationException::withMessages(['file' => 'Row '.$row['row_number'].': activity description changed. Review the workbook again.']);
+                }
+                if ($activity !== null && (string) ($activity->level ?? '') !== $row['level']) {
+                    throw ValidationException::withMessages(['file' => 'Row '.$row['row_number'].': programme level differs from the existing activity. Correct it before importing.']);
+                }
+                if ($activity === null) {
+                    $activity = app(AipActivityService::class)->create([
+                        'financial_year_id' => $year->id, 'activity_number' => $row['activity_number'],
+                        'description' => $row['activity'], 'level' => $row['level'],
+                    ], $request->user());
+                }
+                app(AipActivityOfficeService::class)->create([
+                    'aip_activity_id' => $activity->id, 'office_id' => $request->input('office_id'),
+                    'subject_id' => $subject->id, 'officer_id' => $officer->id,
+                ], $request->user());
+                $funding = DB::table('aip_activity_funding_entries')
+                    ->where('aip_activity_id', $activity->id)->lockForUpdate()->first();
+                if ($funding !== null && ((string) $funding->fund_id !== (string) $fundId || (string) $funding->vote_id !== (string) $voteId)) {
+                    throw ValidationException::withMessages(['file' => 'Row '.$row['row_number'].': fund or vote changed. Review the workbook again.']);
+                }
+                if ($funding === null) {
+                    app(AipActivityFundingEntryService::class)->create([
+                        'aip_activity_id' => $activity->id, 'fund_id' => $fundId, 'vote_id' => $voteId,
+                    ], $request->user());
+                }
+            }
+            });
+        } catch (ValidationException $exception) {
+            $messages = $exception->errors();
+            if (isset($messages['file']) || isset($messages['financial_year_id']) || isset($messages['office_id'])) {
+                throw $exception;
+            }
+            throw ValidationException::withMessages([
+                'file' => collect($messages)->flatten()->first() ?? 'The workbook could not be saved. Review it again.',
+            ]);
+        }
+        $request->session()->forget('aip_import_review');
+        return redirect()->route('aip-activities.index')->with('success', 'AIP workbook imported successfully.');
     }
 
     private function offices()

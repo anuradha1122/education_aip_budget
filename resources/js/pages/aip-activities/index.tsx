@@ -5,7 +5,9 @@ import { type FormEvent, useState } from 'react';
 type Year = { id: number; year: number };
 type Officer = { id: number; name: string; office_name: string; is_active: number | boolean };
 type Assignment = { officer_id: number; subject_id: number; subject_code: string; subject_name: string; subject_active: number | boolean };
-type Activity = { id: number; activity_number: string; description: string; level: string | null; location: string | null; financial_year: { year: number }; subject: { code: string; name: string } | null; officer: { name: string } | null };
+type OfficeAssignment = { id: number; office_code: string; office_name: string; subject_code: string | null; subject_name: string | null; officer_name: string | null };
+type Funding = { fund_code: string; fund_name: string; vote_code: string; vote_description: string };
+type Activity = { id: number; activity_number: string; description: string; level: string | null; location: string | null; financial_year: { year: number }; subject: { code: string; name: string } | null; officer: { name: string } | null; office_assignments: OfficeAssignment[]; funding: Funding | null };
 type PageLink = { url: string | null; label: string; active: boolean };
 type Props = { years: Year[]; officers: Officer[]; assignments: Assignment[]; search: string; activities: { data: Activity[]; links: PageLink[] } };
 
@@ -131,7 +133,7 @@ export default function AipActivities({ years, officers, assignments, search, ac
                     <button type="submit" className="rounded border px-3 py-2">Search</button>
                     <Link href="/aip-activities" onClick={() => setSearchText('')} className="rounded border px-3 py-2">Clear</Link>
                 </form>
-                {activities.data.length === 0 ? 
+                {activities.data.length === 0 ?
                 <p className="mt-3">No activities found.</p> :
                  <div className="mt-3 overflow-x-auto">
                     <table className="w-full text-left text-sm">
@@ -142,23 +144,42 @@ export default function AipActivities({ years, officers, assignments, search, ac
                                 <th className="p-2">Description</th>
                                 <th className="p-2">Level</th>
                                 <th className="p-2">Physical location</th>
-                                <th className="p-2">Subject</th>
-                                <th className="p-2">Officer</th>
+                                <th className="p-2">Office assignments</th>
+                                <th className="p-2">Activity-level assignment</th>
+                                <th className="p-2">Vote</th>
+                                <th className="p-2">Fund</th>
                             </tr>
                         </thead>
-                        <tbody>{activities.data.map((activity) => 
+                        <tbody>{activities.data.map((activity) =>
                             <tr className="border-b" key={activity.id}>
                                 <td className="p-2">{activity.financial_year.year}</td>
                                 <td className="p-2">{activity.activity_number}</td>
                                 <td className="p-2">{activity.description}</td>
                                 <td className="p-2">{activity.level ?? '—'}</td>
                                 <td className="p-2">{activity.location ?? '—'}</td>
-                                <td className="p-2">
-                                    {activity.subject
-                                        ? `${activity.subject.code} — ${activity.subject.name}`
-                                        : '—'}
+                                <td className="p-2 align-top">
+                                    {activity.office_assignments.length === 0 ? '—' : (
+                                        <ul className="space-y-2">
+                                            {activity.office_assignments.map((assignment) => (
+                                                <li key={assignment.id}>
+                                                    <div>{assignment.office_code} — {assignment.office_name}</div>
+                                                    <div>Subject: {assignment.subject_code ? `${assignment.subject_code} — ${assignment.subject_name ?? ''}` : '—'}</div>
+                                                    <div>Officer: {assignment.officer_name ?? '—'}</div>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    )}
                                 </td>
-                                <td className="p-2">{activity.officer?.name ?? '—'}</td>
+                                <td className="p-2 align-top">
+                                    {activity.subject || activity.officer ? (
+                                        <>
+                                            <div>Subject: {activity.subject ? `${activity.subject.code} — ${activity.subject.name}` : '—'}</div>
+                                            <div>Officer: {activity.officer?.name ?? '—'}</div>
+                                        </>
+                                    ) : '—'}
+                                </td>
+                                <td className="p-2 align-top">{activity.funding ? `${activity.funding.vote_code} — ${activity.funding.vote_description}` : '—'}</td>
+                                <td className="p-2 align-top">{activity.funding ? `${activity.funding.fund_code} — ${activity.funding.fund_name}` : '—'}</td>
                             </tr>)}
                         </tbody>
                     </table>
