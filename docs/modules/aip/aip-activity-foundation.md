@@ -186,7 +186,7 @@ format does not have a programme-type column.
 - Users with both `manage-master-data` and `import-aip` permissions can download a blank AIP
   import template with the ten columns in the corrected format.
 - The template was downloaded and compared with the corrected format in the
-  browser.
+  browser. The activity-number column is formatted as text for rows 2–5001.
 
 ## Tests and checks completed
 
@@ -236,9 +236,14 @@ test suite and acceptance testing must be run again for the completed module.
 
 - Full-size annual workbook and end-to-end acceptance tests remain to be
   completed, including separate files for the province and all seven zones.
-- Verify leading-zero activity numbers in real Excel workbooks. Numeric cells
-  formatted to show leading zeros may be read without their display formatting;
-  identifiers should be entered as text until this is tested and resolved.
+- Review preserves numeric activity numbers with simple zero-only formats
+  such as `000` and rejects unsupported numeric formats and numeric values
+  above 15 digits. The same checks run again on save. Identifiers can be entered
+  as text. Verify this behavior with real Excel workbooks before production.
+- Excel may remove leading zeros when a user enters `001` into a General-format
+  cell before saving. Lost zeros cannot be recovered; enter identifiers as
+  text or use the provided template. Other identifier columns also require
+  leading-zero testing.
 - Serial numbers are used for review only and are not saved.
 - Existing activity-level subject and officer values are not copied to office
   links. Existing links require individual review and a correction workflow.

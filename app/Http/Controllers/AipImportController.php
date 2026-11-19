@@ -83,7 +83,8 @@ class AipImportController extends Controller
             $reader = IOFactory::createReaderForFile(
                 $request->file('file')->getRealPath()
             );
-            $reader->setReadDataOnly(true);
+            // Number formats are needed to preserve identifiers displayed with leading zeros.
+            $reader->setReadDataOnly(false);
             $spreadsheet = $reader->load(
                 $request->file('file')->getRealPath()
             );
@@ -120,11 +121,23 @@ class AipImportController extends Controller
 
             for ($rowNumber = 2; $rowNumber <= $highestRow; $rowNumber++) {
                 $cells = [];
+                $activityNumberError = null;
 
                 foreach (range('A', 'J') as $column) {
-                    $cells[] = trim(
-                        (string) $sheet->getCell($column.$rowNumber)->getValue()
-                    );
+                    $cell = $sheet->getCell($column.$rowNumber);
+                    $value = $cell->getValue();
+                    if ($column === 'C' && $cell->getDataType() === \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_NUMERIC) {
+                        $format = $sheet->getStyle($column.$rowNumber)->getNumberFormat()->getFormatCode();
+                        $numeric = (float) $value;
+                        if (! is_finite($numeric) || $numeric < 0 || floor($numeric) !== $numeric || $numeric > 999999999999999
+                            || (strcasecmp($format, 'General') !== 0 && (! preg_match('/\A0+\z/', $format) || strlen($format) > 50))) {
+                            $activityNumberError = 'Activity number has an unsupported numeric value or format. Enter it as text.';
+                        } else {
+                            $digits = sprintf('%.0f', $numeric);
+                            $value = strcasecmp($format, 'General') === 0 ? $digits : str_pad($digits, strlen($format), '0', STR_PAD_LEFT);
+                        }
+                    }
+                    $cells[] = trim((string) $value);
                 }
 
                 if (count(array_filter($cells, fn ($value) => $value !== '')) === 0) {
@@ -134,7 +147,9 @@ class AipImportController extends Controller
                 $number = $cells[2];
                 $errors = [];
 
-                if ($number === '' || ! preg_match('/\A[0-9]+\z/', $number)) {
+                if ($activityNumberError !== null) {
+                    $errors[] = $activityNumberError;
+                } elseif ($number === '' || ! preg_match('/\A[0-9]+\z/', $number)) {
                     $errors[] = 'Activity number must contain digits only.';
                 } elseif (strlen($number) > 50) {
                     $errors[] = 'Activity number must not exceed 50 characters.';
