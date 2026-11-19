@@ -203,9 +203,10 @@ test suite and acceptance testing must be run again for the completed module.
 ### Annual import
 
 - Preliminary review requires subject code, officer, vote and fund. Supplied
-  subject names must match master data. Rules for inactive references and
-  end-to-end import acceptance need review. Serial numbers are used for review
-  only and are not saved.
+  subject names must match master data. Inactive offices, subjects, officers,
+  votes and funds are rejected for new imports and rechecked during saving.
+  End-to-end import acceptance remains to be completed. Serial numbers are
+  used for review only and are not saved.
 - The save reuses matching existing activities and existing funding entries;
   the office link stores the subject and officer. Existing activity-level
   subject and officer values are not copied to the new office link. Matching
@@ -225,7 +226,8 @@ test suite and acceptance testing must be run again for the completed module.
 - The database prevents a second funding entry for an activity. Funding-entry
   correction remains to be implemented. The service rejects duplicate
   requests with a validation error.
-- Rules for selecting inactive offices, votes and funds still need confirmation.
+- Rules for using inactive records in other manual workflows still need review;
+  the rejection rule above applies to new AIP imports.
 
 ### Financial-year and access controls
 

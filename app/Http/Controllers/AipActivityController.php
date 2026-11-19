@@ -61,7 +61,10 @@ class AipActivityController extends Controller
             ->orderBy('s.code')->orderBy('s.name')
             ->get(['a.officer_id', 'a.subject_id', 's.code as subject_code', 's.name as subject_name', 's.is_active as subject_active']);
 
-        return Inertia::render('aip-activities/index', compact('activities', 'years', 'officers', 'assignments', 'search'));
+        return Inertia::render('aip-activities/index', [
+            ...compact('activities', 'years', 'officers', 'assignments', 'search'),
+            'canImportAip' => $request->user()->can('import-aip'),
+        ]);
     }
 
     public function store(Request $request, AipActivityService $service): RedirectResponse

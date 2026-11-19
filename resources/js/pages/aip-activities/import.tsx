@@ -125,7 +125,7 @@ export default function AipImport({ years, offices, result }: Props) {
                             className="mt-1 block w-full rounded border bg-background p-2">
                             <option value="">Select an office</option>
                             {offices.map((office) => (
-                                <option key={office.id} value={office.id}>
+                                <option key={office.id} value={office.id} disabled={Number(office.is_active) === 0}>
                                     {office.code} — {office.name}{Number(office.is_active) === 0 ? ' (inactive)' : ''}
                                 </option>
                             ))}
@@ -170,7 +170,7 @@ export default function AipImport({ years, offices, result }: Props) {
                         <p className="mt-2 text-sm">Office: {result.office.code} — {result.office.name}</p>
                         <p className="mt-2 text-sm">
                             This preliminary check covers activity numbers, descriptions, supplied vote and fund codes, and supplied subject codes for the selected office.
-                            Subject code, officer, vote and fund are required. Supplied officer names are checked within the selected office; supplied designations are compared with the matching officer. When both the officer and subject match uniquely, their active assignment is checked. For an existing activity, supplied known funds and votes are checked against its funding entries. Supplied subject names are compared with master data. Inactive references are not yet checked. Reviewing has not saved any rows.
+                            Subject code, officer, vote and fund are required. Supplied officer names are checked within the selected office; supplied designations are compared with the matching officer. When both the officer and subject match uniquely, their active assignment is checked. For an existing activity, supplied known funds and votes are checked against its funding entries. Supplied subject names are compared with master data. Inactive offices, subjects, officers, votes and funds cannot be imported. Reviewing has not saved any rows.
                         </p>
 
                         <p className="mt-2 text-sm">An existing activity message is informational when the other details match and the office is not already linked. Save rechecks the workbook.</p>

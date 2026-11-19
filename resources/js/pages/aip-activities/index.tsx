@@ -9,9 +9,9 @@ type OfficeAssignment = { id: number; office_code: string; office_name: string; 
 type Funding = { fund_code: string; fund_name: string; vote_code: string; vote_description: string };
 type Activity = { id: number; activity_number: string; description: string; level: string | null; location: string | null; financial_year: { year: number }; subject: { code: string; name: string } | null; officer: { name: string } | null; office_assignments: OfficeAssignment[]; funding: Funding | null };
 type PageLink = { url: string | null; label: string; active: boolean };
-type Props = { years: Year[]; officers: Officer[]; assignments: Assignment[]; search: string; activities: { data: Activity[]; links: PageLink[] } };
+type Props = { years: Year[]; officers: Officer[]; assignments: Assignment[]; search: string; canImportAip: boolean; activities: { data: Activity[]; links: PageLink[] } };
 
-export default function AipActivities({ years, officers, assignments, search, activities }: Props) {
+export default function AipActivities({ years, officers, assignments, search, activities, canImportAip }: Props) {
     const [searchText, setSearchText] = useState(search);
     const { data, setData, post, processing, errors, recentlySuccessful, reset } = useForm({
         financial_year_id: '', activity_number: '', description: '', level: '', location: '', officer_id: '', subject_id: '',
@@ -48,13 +48,16 @@ export default function AipActivities({ years, officers, assignments, search, ac
                         Manage votes and funds
                     </Link>
 
-                    <a href="/aip-activities/import/template" className="underline">
-                        Download AIP import template
-                    </a>
-
-                    <Link href="/aip-activities/import" className="underline">
-                        Validate AIP import
-                    </Link>
+                    {canImportAip && (
+                        <>
+                            <a href="/aip-activities/import/template" className="underline">
+                                Download AIP import template
+                            </a>
+                            <Link href="/aip-activities/import" className="underline">
+                                Import AIP
+                            </Link>
+                        </>
+                    )}
                 </div>
             </div>
             <form onSubmit={submit} className="flex w-full max-w-2xl flex-col gap-4 rounded border p-4">

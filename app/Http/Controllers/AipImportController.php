@@ -65,6 +65,9 @@ class AipImportController extends Controller
         if ($office === null) {
             throw ValidationException::withMessages(['office_id' => 'Select an existing office.']);
         }
+        if (! (bool) $office->is_active) {
+            throw ValidationException::withMessages(['office_id' => 'The selected office is inactive.']);
+        }
 
         $year = DB::table('financial_years')
             ->where('id', $validated['financial_year_id'])
@@ -149,11 +152,21 @@ class AipImportController extends Controller
 
                 $voteCode = $cells[8];
                 $fundCode = $cells[9];
-                if ($voteCode !== '' && ! DB::table('votes')->where('code', $voteCode)->exists()) {
-                    $errors[] = 'Vote code was not found in master data.';
+                if ($voteCode !== '') {
+                    $vote = DB::table('votes')->where('code', $voteCode)->first(['id', 'is_active']);
+                    if ($vote === null) {
+                        $errors[] = 'Vote code was not found in master data.';
+                    } elseif (! (bool) $vote->is_active) {
+                        $errors[] = 'Vote is inactive.';
+                    }
                 }
-                if ($fundCode !== '' && ! DB::table('funds')->where('code', $fundCode)->exists()) {
-                    $errors[] = 'Fund code was not found in master data.';
+                if ($fundCode !== '') {
+                    $fund = DB::table('funds')->where('code', $fundCode)->first(['id', 'is_active']);
+                    if ($fund === null) {
+                        $errors[] = 'Fund code was not found in master data.';
+                    } elseif (! (bool) $fund->is_active) {
+                        $errors[] = 'Fund is inactive.';
+                    }
                 }
 
                 $subjectMatches = collect();
@@ -162,13 +175,16 @@ class AipImportController extends Controller
                         ->where('office_id', $office->id)
                         ->where('code', $cells[4])
                         ->limit(2)
-                        ->get(['id', 'name']);
+                        ->get(['id', 'name', 'is_active']);
                     if ($subjectMatches->isEmpty()) {
                         $errors[] = 'Subject code was not found for the selected office.';
                     } elseif ($subjectMatches->count() > 1) {
                         $errors[] = 'Subject code matches more than one record in the selected office.';
                     } elseif ($cells[5] !== '' && trim((string) $subjectMatches[0]->name) !== $cells[5]) {
                         $errors[] = 'Subject name differs from master data.';
+                    }
+                    if ($subjectMatches->count() === 1 && ! (bool) $subjectMatches[0]->is_active) {
+                        $errors[] = 'Subject is inactive.';
                     }
                 }
 
@@ -180,7 +196,7 @@ class AipImportController extends Controller
                         ->where('office_id', $office->id)
                         ->where('name', $officerName)
                         ->limit(2)
-                        ->get(['id', 'designation_id']);
+                        ->get(['id', 'designation_id', 'is_active']);
                     if ($matches->isEmpty()) {
                         $errors[] = 'Officer name was not found for the selected office.';
                     } elseif ($matches->count() > 1) {
@@ -190,6 +206,9 @@ class AipImportController extends Controller
                         ->where('name', $designationName)
                         ->exists()) {
                         $errors[] = 'Designation does not match the selected officer.';
+                    }
+                    if ($matches->count() === 1 && ! (bool) $matches[0]->is_active) {
+                        $errors[] = 'Officer is inactive.';
                     }
                 } elseif ($designationName !== '') {
                     $errors[] = 'Designation cannot be checked without an officer name.';
@@ -340,6 +359,9 @@ class AipImportController extends Controller
             if ($office === null) {
                 throw ValidationException::withMessages(['office_id' => 'Select an existing office.']);
             }
+            if (! (bool) $office->is_active) {
+                throw ValidationException::withMessages(['office_id' => 'The selected office is inactive.']);
+            }
             $result = $this->reviewFile($request);
             $notice = 'Activity already exists for this financial year; review its existing details before importing.';
             foreach ($result['rows'] as $row) {
@@ -358,11 +380,13 @@ class AipImportController extends Controller
                 }
                 $officer = $officers[0];
                 $subject = $subjects[0];
-                $voteId = DB::table('votes')->where('code', $row['vote'])->value('id');
-                $fundId = DB::table('funds')->where('code', $row['fund'])->value('id');
-                if ($subject === null || $officer === null || $voteId === null || $fundId === null) {
+                $vote = DB::table('votes')->where('code', $row['vote'])->lockForUpdate()->first(['id', 'is_active']);
+                $fund = DB::table('funds')->where('code', $row['fund'])->lockForUpdate()->first(['id', 'is_active']);
+                if ($vote === null || $fund === null || ! (bool) $subject->is_active || ! (bool) $officer->is_active || ! (bool) $vote->is_active || ! (bool) $fund->is_active) {
                     throw ValidationException::withMessages(['file' => 'Master data changed. Review the workbook again.']);
                 }
+                $voteId = $vote->id;
+                $fundId = $fund->id;
                 if ($row['designation'] !== '' && ! DB::table('designations')->where('id', $officer->designation_id)->where('name', $row['designation'])->lockForUpdate()->exists()) {
                     throw ValidationException::withMessages(['file' => 'A designation changed. Review the workbook again.']);
                 }
