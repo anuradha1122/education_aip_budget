@@ -84,8 +84,8 @@ format does not have a programme-type column.
 - Authorised users can review an AIP workbook and submit it for saving. The
   save repeats validation and uses a transaction to create activities, office
   links and funding entries. Matching common activities and funding entries
-  are reused. Save integration, full-suite and browser acceptance checks must
-  be completed before the module is considered complete.
+  are reused. Selected save tests and a browser import have passed; full-suite
+  and broader acceptance checks remain.
 
 ### Activity register
 
@@ -106,6 +106,11 @@ format does not have a programme-type column.
   with `manage-master-data` permission.
 - An AIP activities link is available in the sidebar for users with the
   relevant permission.
+- The register shows office-specific subjects and officers, and the common
+  vote and fund. Older activity-level assignments are shown separately.
+  The register currently uses `manage-master-data` and is not office-scoped.
+- The register shows import and template links only when `import-aip` allows
+  the signed-in administrator. The routes also enforce their permissions.
 
 ### Subjects and officers
 
@@ -156,6 +161,26 @@ format does not have a programme-type column.
   and view existing entries. The page passes the signed-in user to the
   service.
 
+### Annual import review and save
+
+- The administrator selects an open financial year and office, uploads the
+  template, and reviews the rows before saving. The reviewed year, office and
+  workbook content are checked again when saving.
+- Review checks required subject code, officer, vote and fund; activity number
+  and description; matching subject and officer for the office; the officer's
+  active subject assignment; and supplied designation and subject names.
+- Inactive offices, subjects, officers, votes and funds are rejected for new
+  imports and rechecked during saving. Existing records are not deleted.
+- Review reports repeated activity numbers within a workbook and conflicting
+  descriptions, fund and vote values for existing activities. An existing
+  matching activity is informational; an office already linked is rejected.
+- Saving revalidates the workbook and uses a transaction to create or reuse
+  the common activity and funding entry, then records the office-specific
+  subject and officer. Creation services write audit events. A failure rolls
+  back the import transaction.
+- Reviewed-save routes require both `manage-master-data` and `import-aip`.
+  The permission is not granted to accounts automatically.
+
 ### Import template
 
 - Users with both `manage-master-data` and `import-aip` permissions can download a blank AIP
@@ -194,6 +219,13 @@ test suite and acceptance testing must be run again for the completed module.
   officer–subject assignments when both records are uniquely matched.
 - Office-specific subject and officer service checks passed for two offices,
   incorrect offices, missing or ended assignments, and audit recording.
+- Reviewed-save tests passed for two-office activity reuse, authorization,
+  review identity, changed data and rollback. One workbook was saved and its
+  office assignment and funding were checked in the browser.
+- Register office-detail and import-link permission tests passed. The register
+  was checked in the browser after its office-specific display was corrected.
+- Import tests passed for inactive offices and inactive subject, officer,
+  vote and fund records, including deactivation after review.
 - The one-fund service test and funding regression tests passed. A read-only
   check of the development database found no activities with multiple funds.
   This result applies only to that database at the time of the check.
@@ -202,19 +234,16 @@ test suite and acceptance testing must be run again for the completed module.
 
 ### Annual import
 
-- Preliminary review requires subject code, officer, vote and fund. Supplied
-  subject names must match master data. Inactive offices, subjects, officers,
-  votes and funds are rejected for new imports and rechecked during saving.
-  End-to-end import acceptance remains to be completed. Serial numbers are
-  used for review only and are not saved.
-- The save reuses matching existing activities and existing funding entries;
-  the office link stores the subject and officer. Existing activity-level
-  subject and officer values are not copied to the new office link. Matching
-  existing activities are flagged as informational during review.
-- Preliminary review reports known fund or vote values that conflict with
-  existing funding entries. The reviewed save workflow must revalidate the
-  common activity and its funding and handle conflicts without overwriting
-  existing data.
+- Full-size annual workbook and end-to-end acceptance tests remain to be
+  completed, including separate files for the province and all seven zones.
+- Verify leading-zero activity numbers in real Excel workbooks. Numeric cells
+  formatted to show leading zeros may be read without their display formatting;
+  identifiers should be entered as text until this is tested and resolved.
+- Serial numbers are used for review only and are not saved.
+- Existing activity-level subject and officer values are not copied to office
+  links. Existing links require individual review and a correction workflow.
+- Review workbook size, performance, concurrent edits and user-facing errors
+  before production use.
 - Vote and fund validation should be tested with a full-size annual AIP
   workbook and improved if necessary.
 
@@ -276,6 +305,7 @@ test suite and acceptance testing must be run again for the completed module.
 
 M05 depends on organisation and master data, permissions and financial-year
 controls. Those dependencies must be reviewed as part of module completion.
+The completion status of M01–M04 has not been verified by this document.
 
 Before M05 is reported as complete:
 
