@@ -229,6 +229,11 @@ test suite and acceptance testing must be run again for the completed module.
   enforced across every future AIP action or direct database write.
 - The financial-year closing and reopening workflow, including concurrent
   changes, needs review.
+- The `import-aip` gate and `can_import_aip` user flag are a permission
+  foundation, defaulting to denied. Existing import review and template routes
+  still use `manage-master-data`; no import save route uses this gate yet.
+  No account is granted the flag automatically. Account administration and
+  route enforcement must be completed and tested.
 - Provincial main administrators must be able to view all offices; zonal
   users must see only their own office and subject directors their own records.
   These access rules and their tests are not yet implemented.

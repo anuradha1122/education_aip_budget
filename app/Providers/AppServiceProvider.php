@@ -8,21 +8,19 @@ use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
     public function register(): void
     {
         //
     }
 
-    /**
-     * Bootstrap any application services.
-     */
     public function boot(): void
     {
         Gate::define('manage-master-data', function (User $user): bool {
             return (bool) $user->is_admin;
+        });
+
+        Gate::define('import-aip', function (User $user): bool {
+            return (bool) $user->is_admin && (bool) $user->can_import_aip;
         });
     }
 }
