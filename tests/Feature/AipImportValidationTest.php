@@ -38,7 +38,7 @@ class AipImportValidationTest extends TestCase
     private function admin(): User
     {
         $user = User::factory()->create();
-        $user->forceFill(['is_admin' => true])->save();
+        $user->forceFill(['is_admin' => true, 'can_import_aip' => true])->save();
 
         return $user;
     }

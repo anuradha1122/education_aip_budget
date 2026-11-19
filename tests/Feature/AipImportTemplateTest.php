@@ -27,7 +27,7 @@ class AipImportTemplateTest extends TestCase
     public function test_an_administrator_can_download_the_blank_template(): void
     {
         $admin = User::factory()->create();
-        $admin->forceFill(['is_admin' => true])->save();
+        $admin->forceFill(['is_admin' => true, 'can_import_aip' => true])->save();
 
         $response = $this->actingAs($admin)
             ->get('/aip-activities/import/template');

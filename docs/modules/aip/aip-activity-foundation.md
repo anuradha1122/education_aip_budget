@@ -156,7 +156,7 @@ format does not have a programme-type column.
 
 ### Import template
 
-- Users with `manage-master-data` permission can download a blank AIP
+- Users with both `manage-master-data` and `import-aip` permissions can download a blank AIP
   import template with the ten columns in the corrected format.
 - The template was downloaded and compared with the corrected format in the
   browser.
@@ -230,10 +230,10 @@ test suite and acceptance testing must be run again for the completed module.
 - The financial-year closing and reopening workflow, including concurrent
   changes, needs review.
 - The `import-aip` gate and `can_import_aip` user flag are a permission
-  foundation, defaulting to denied. Existing import review and template routes
-  still use `manage-master-data`; no import save route uses this gate yet.
-  No account is granted the flag automatically. Account administration and
-  route enforcement must be completed and tested.
+  foundation, defaulting to denied. The import review, validation and template
+  routes require this gate as well as `manage-master-data`. No account is
+  granted the flag automatically. Import saving and account administration
+  for this flag are not yet implemented.
 - Provincial main administrators must be able to view all offices; zonal
   users must see only their own office and subject directors their own records.
   These access rules and their tests are not yet implemented.

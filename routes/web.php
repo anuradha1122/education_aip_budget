@@ -458,13 +458,13 @@ Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
         ->name('aip-funding-entries.store');
 
     Route::get('/aip-activities/import/template', [AipImportTemplateController::class, 'download'])
-        ->name('aip-activities.import.template');
+        ->middleware('can:import-aip')->name('aip-activities.import.template');
 
     Route::get('/aip-activities/import', [AipImportController::class, 'index'])
-        ->name('aip-activities.import.index');
+        ->middleware('can:import-aip')->name('aip-activities.import.index');
 
     Route::post('/aip-activities/import/validate', [AipImportController::class, 'validateFile'])
-        ->name('aip-activities.import.validate');
+        ->middleware('can:import-aip')->name('aip-activities.import.validate');
 });
 
 require __DIR__.'/settings.php';

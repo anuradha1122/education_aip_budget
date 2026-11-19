@@ -81,7 +81,7 @@ class AipImportOfficeScopeTest extends TestCase
             [3, 'Zonal', '125', 'Teacher meeting'],
         ]);
         $admin = User::factory()->create();
-        $admin->forceFill(['is_admin' => true])->save();
+        $admin->forceFill(['is_admin' => true, 'can_import_aip' => true])->save();
         $this->actingAs($admin)->post('/aip-activities/import/validate', [
             'financial_year_id' => $selectedYear, 'office_id' => $selectedOffice, 'file' => $file,
         ])->assertOk()->assertInertia(fn (Assert $page) => $page

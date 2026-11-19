@@ -28,4 +28,27 @@ class AipImportPermissionTest extends TestCase
         $user->forceFill(['is_admin' => false])->save();
         $this->assertFalse(Gate::forUser($user->fresh())->allows('import-aip'));
     }
+
+    public function test_import_routes_require_a_permitted_administrator(): void
+    {
+        $this->get('/aip-activities/import')->assertRedirect(route('login'));
+        $this->get('/aip-activities/import/template')->assertRedirect(route('login'));
+        $this->post('/aip-activities/import/validate', [])->assertRedirect(route('login'));
+
+        $admin = User::factory()->create();
+        $admin->forceFill(['is_admin' => true, 'can_import_aip' => false])->save();
+        $this->actingAs($admin)->get('/aip-activities/import')->assertForbidden();
+        $this->get('/aip-activities/import/template')->assertForbidden();
+        $this->post('/aip-activities/import/validate', [])->assertForbidden();
+
+        $admin->forceFill(['can_import_aip' => true])->save();
+        $this->actingAs($admin->fresh())->get('/aip-activities/import')->assertOk();
+        $this->get('/aip-activities/import/template')->assertOk();
+        $this->post('/aip-activities/import/validate', [])->assertSessionHasErrors('financial_year_id');
+
+        $admin->forceFill(['is_admin' => false])->save();
+        $this->actingAs($admin->fresh())->get('/aip-activities/import')->assertForbidden();
+        $this->get('/aip-activities/import/template')->assertForbidden();
+        $this->post('/aip-activities/import/validate', [])->assertForbidden();
+    }
 }
