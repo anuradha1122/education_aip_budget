@@ -152,9 +152,9 @@ class AipImportValidationTest extends TestCase
             ])
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->has('result.rows.0.errors', 1)
-                ->has('result.rows.1.errors', 1)
-                ->has('result.rows.2.errors', 1));
+                ->has('result.rows.0.errors', 5)
+                ->has('result.rows.1.errors', 5)
+                ->has('result.rows.2.errors', 5));
 
         $this->assertDatabaseCount('aip_activities', 0);
     }
@@ -235,7 +235,7 @@ class AipImportValidationTest extends TestCase
             ->where('result.rows.0.errors.0', 'Activity already exists for this financial year; review its existing details before importing.')
             ->where('result.rows.0.errors.1', 'This activity is already linked to the selected office.')
             ->where('result.rows.1.errors.1', 'The activity description differs from the existing activity.')
-            ->has('result.rows.2.errors', 0));
+            ->has('result.rows.2.errors', 4));
 
         $this->assertDatabaseCount('aip_activities', 2);
         $this->assertDatabaseCount('aip_activity_offices', 1);
@@ -265,10 +265,10 @@ class AipImportValidationTest extends TestCase
         $this->actingAs($this->admin())->post('/aip-activities/import/validate', [
             'financial_year_id' => $year, 'office_id' => $office, 'file' => $file,
         ])->assertOk()->assertInertia(fn (Assert $page) => $page
-            ->has('result.rows.0.errors', 0)
+            ->has('result.rows.0.errors', 3)
             ->where('result.rows.1.errors.0', 'Subject code was not found for the selected office.')
             ->where('result.rows.2.errors.0', 'Subject code was not found for the selected office.')
-            ->has('result.rows.3.errors', 0));
+            ->has('result.rows.3.errors', 4));
         $this->assertDatabaseCount('aip_activities', 0);
         $this->assertDatabaseCount('aip_activity_offices', 0);
         $this->assertDatabaseCount('aip_activity_funding_entries', 0);
@@ -302,11 +302,11 @@ class AipImportValidationTest extends TestCase
         $this->actingAs($this->admin())->post('/aip-activities/import/validate', [
             'financial_year_id' => $year, 'office_id' => $office, 'file' => $file,
         ])->assertOk()->assertInertia(fn (Assert $page) => $page
-            ->has('result.rows.0.errors', 0)
+            ->has('result.rows.0.errors', 3)
             ->where('result.rows.1.errors.0', 'Officer name was not found for the selected office.')
             ->where('result.rows.2.errors.0', 'Designation does not match the selected officer.')
             ->where('result.rows.3.errors.0', 'Designation cannot be checked without an officer name.')
-            ->has('result.rows.4.errors', 0));
+            ->has('result.rows.4.errors', 4));
         $this->assertDatabaseCount('aip_activities', 0);
         $this->assertDatabaseCount('aip_activity_offices', 0);
         $this->assertDatabaseCount('aip_activity_funding_entries', 0);
@@ -345,12 +345,12 @@ class AipImportValidationTest extends TestCase
         $this->actingAs($this->admin())->post('/aip-activities/import/validate', [
             'financial_year_id' => $year, 'office_id' => $office, 'file' => $file,
         ])->assertOk()->assertInertia(fn (Assert $page) => $page
-            ->has('result.rows.0.errors', 0)
+            ->has('result.rows.0.errors', 2)
             ->where('result.rows.1.errors.0', 'Officer does not have an active assignment to this subject.')
             ->where('result.rows.2.errors.0', 'Officer does not have an active assignment to this subject.')
             ->where('result.rows.3.errors.0', 'Subject code was not found for the selected office.')
-            ->has('result.rows.3.errors', 1)
-            ->has('result.rows.4.errors', 0));
+            ->has('result.rows.3.errors', 3)
+            ->has('result.rows.4.errors', 3));
         $this->assertDatabaseCount('aip_activities', 0);
         $this->assertDatabaseCount('aip_activity_offices', 0);
         $this->assertDatabaseCount('aip_activity_funding_entries', 0);
@@ -392,8 +392,8 @@ class AipImportValidationTest extends TestCase
             'financial_year_id' => $year, 'office_id' => $office, 'file' => $file,
         ])->assertOk()->assertInertia(fn (Assert $page) => $page
             ->where('result.rows.0.errors.1', 'Fund differs from the existing fund for this activity.')
-            ->has('result.rows.1.errors', 1)
-            ->has('result.rows.2.errors', 0));
+            ->has('result.rows.1.errors', 3)
+            ->has('result.rows.2.errors', 2));
         $this->assertDatabaseCount('aip_activities', 2);
         $this->assertDatabaseCount('aip_activity_funding_entries', 2);
         $this->assertDatabaseCount('aip_activity_offices', 0);
@@ -438,13 +438,31 @@ class AipImportValidationTest extends TestCase
             'financial_year_id' => $year, 'office_id' => $office, 'file' => $file,
         ])->assertOk()->assertInertia(fn (Assert $page) => $page
             ->where('result.rows.0.errors.1', 'Vote differs from the existing vote for this activity.')
-            ->has('result.rows.1.errors', 1)
-            ->has('result.rows.2.errors', 0)
-            ->has('result.rows.3.errors', 1));
+            ->has('result.rows.1.errors', 3)
+            ->has('result.rows.2.errors', 2)
+            ->has('result.rows.3.errors', 3));
         $this->assertDatabaseCount('aip_activities', 3);
         $this->assertDatabaseCount('aip_activity_funding_entries', 2);
         $this->assertDatabaseCount('aip_activity_offices', 0);
         $this->assertDatabaseCount('aip_funding_entry_audit_events', 0);
+    }
+
+    public function test_subject_officer_vote_and_fund_are_required(): void
+    {
+        $year = $this->year();
+        $office = $this->office();
+        $file = $this->workbook([[1, 'Zonal', '501', 'Example activity']]);
+        $this->actingAs($this->admin())->post('/aip-activities/import/validate', [
+            'financial_year_id' => $year, 'office_id' => $office, 'file' => $file,
+        ])->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->has('result.rows.0.errors', 4)
+            ->where('result.rows.0.errors.0', 'Subject code is required.')
+            ->where('result.rows.0.errors.1', 'Officer is required.')
+            ->where('result.rows.0.errors.2', 'Vote is required.')
+            ->where('result.rows.0.errors.3', 'Fund is required.'));
+        $this->assertDatabaseCount('aip_activities', 0);
+        $this->assertDatabaseCount('aip_activity_offices', 0);
+        $this->assertDatabaseCount('aip_activity_funding_entries', 0);
     }
 
     public function test_unknown_vote_and_fund_codes_are_reported(): void

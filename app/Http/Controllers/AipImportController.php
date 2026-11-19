@@ -260,6 +260,16 @@ class AipImportController extends Controller
                         }
                     }
                 }
+                foreach ([
+                    'subject_code' => 'Subject code is required.',
+                    'officer' => 'Officer is required.',
+                    'vote' => 'Vote is required.',
+                    'fund' => 'Fund is required.',
+                ] as $field => $message) {
+                    if ($row[$field] === '') {
+                        $row['errors'][] = $message;
+                    }
+                }
             }
             unset($row);
 

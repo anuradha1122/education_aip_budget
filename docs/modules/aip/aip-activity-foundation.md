@@ -73,7 +73,8 @@ The corrected AIP format contains these ten columns:
 The provincial main administrator will upload eight separate files: one for
 the province and one for each of seven zones. The administrator selects the
 financial year and office for each file. An activity number appears at most
-once within an office workbook.
+once within an office workbook. Subject code, officer, vote and fund are
+required in each row.
 
 Training and meeting are programme types, not funds. The corrected AIP
 format does not have a programme-type column.
@@ -199,10 +200,9 @@ test suite and acceptance testing must be run again for the completed module.
 
 ### Annual import
 
-- Reviewed saving is not implemented. Preliminary checks do not establish
-  that a workbook is ready to save. Blank fields, subject names and inactive
-  references still need agreed validation rules. The import must not silently
-  discard vote or fund values.
+- Reviewed saving is not implemented. Preliminary review requires subject
+  code, officer, vote and fund; subject names and inactive references still
+  need agreed validation rules. The import must not silently discard values.
 - Existing activities are flagged for review; reuse across office files has
   not been implemented. Imported activity–office links, office-specific
   assignments and funding entries are not yet saved.
