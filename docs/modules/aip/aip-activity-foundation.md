@@ -54,6 +54,7 @@ The same activity may be used by multiple offices.
 - Votes and funds may be the same or different across activities.
 - Votes and funds are assigned manually in the AIP data. The system must
   not assume that one fund always has one vote.
+- Fund values are text, for example `ADB` or `PF`.
 
 ### Annual AIP import
 
@@ -186,7 +187,9 @@ format does not have a programme-type column.
 - Users with both `manage-master-data` and `import-aip` permissions can download a blank AIP
   import template with the ten columns in the corrected format.
 - The template was downloaded and compared with the corrected format in the
-  browser. The activity-number column is formatted as text for rows 2–5001.
+  browser. The revised template sets text defaults on the activity number,
+  subject code, vote and fund columns without pre-creating 20,000 cells. Verify
+  the defaults in Excel and the revised download time before acceptance.
 
 ## Tests and checks completed
 
@@ -236,14 +239,13 @@ test suite and acceptance testing must be run again for the completed module.
 
 - Full-size annual workbook and end-to-end acceptance tests remain to be
   completed, including separate files for the province and all seven zones.
-- Review preserves numeric activity numbers with simple zero-only formats
-  such as `000` and rejects unsupported numeric formats and numeric values
-  above 15 digits. The same checks run again on save. Identifiers can be entered
-  as text. Verify this behavior with real Excel workbooks before production.
+- Review handles activity numbers, subject codes and vote codes
+  with simple zero-only formats such as `000` and rejects unsupported numeric
+  formats and numeric values above 15 digits. The same checks run again on
+  save. The revised code and template need tests and real Excel acceptance.
 - Excel may remove leading zeros when a user enters `001` into a General-format
   cell before saving. Lost zeros cannot be recovered; enter identifiers as
-  text or use the provided template. Other identifier columns also require
-  leading-zero testing.
+  text or use the provided template.
 - Serial numbers are used for review only and are not saved.
 - Existing activity-level subject and officer values are not copied to office
   links. Existing links require individual review and a correction workflow.

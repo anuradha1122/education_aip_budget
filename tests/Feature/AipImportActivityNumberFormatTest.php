@@ -166,7 +166,9 @@ class AipImportActivityNumberFormatTest extends TestCase
             $spreadsheet = IOFactory::load($path);
             $sheet = $spreadsheet->getActiveSheet();
             $this->assertSame('@', $sheet->getStyle('C2')->getNumberFormat()->getFormatCode());
-            $this->assertSame('@', $sheet->getStyle('C5001')->getNumberFormat()->getFormatCode());
+            $styleIndex = $sheet->getColumnDimension('C')->getXfIndex();
+            $this->assertNotNull($styleIndex);
+            $this->assertSame('@', $spreadsheet->getCellXfByIndex($styleIndex)->getNumberFormat()->getFormatCode());
             $spreadsheet->disconnectWorksheets();
         } finally {
             if (file_exists($path)) {

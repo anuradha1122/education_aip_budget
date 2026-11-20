@@ -121,20 +121,22 @@ class AipImportController extends Controller
 
             for ($rowNumber = 2; $rowNumber <= $highestRow; $rowNumber++) {
                 $cells = [];
-                $activityNumberError = null;
+                $identifierErrors = [];
 
                 foreach (range('A', 'J') as $column) {
                     $cell = $sheet->getCell($column.$rowNumber);
                     $value = $cell->getValue();
-                    if ($column === 'C' && $cell->getDataType() === \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_NUMERIC) {
+                    if (in_array($column, ['C', 'E', 'I'], true) && $cell->getDataType() === \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_NUMERIC) {
                         $format = $sheet->getStyle($column.$rowNumber)->getNumberFormat()->getFormatCode();
                         $numeric = (float) $value;
+                        $plain = strcasecmp($format, 'General') === 0 || $format === '@';
                         if (! is_finite($numeric) || $numeric < 0 || floor($numeric) !== $numeric || $numeric > 999999999999999
-                            || (strcasecmp($format, 'General') !== 0 && (! preg_match('/\A0+\z/', $format) || strlen($format) > 50))) {
-                            $activityNumberError = 'Activity number has an unsupported numeric value or format. Enter it as text.';
+                            || (! $plain && (! preg_match('/\A0+\z/', $format) || strlen($format) > 50))) {
+                            $label = ['C' => 'Activity number', 'E' => 'Subject code', 'I' => 'Vote code'][$column];
+                            $identifierErrors[$column] = $label.' has an unsupported numeric value or format. Enter it as text.';
                         } else {
                             $digits = sprintf('%.0f', $numeric);
-                            $value = strcasecmp($format, 'General') === 0 ? $digits : str_pad($digits, strlen($format), '0', STR_PAD_LEFT);
+                            $value = $plain ? $digits : str_pad($digits, strlen($format), '0', STR_PAD_LEFT);
                         }
                     }
                     $cells[] = trim((string) $value);
@@ -147,8 +149,8 @@ class AipImportController extends Controller
                 $number = $cells[2];
                 $errors = [];
 
-                if ($activityNumberError !== null) {
-                    $errors[] = $activityNumberError;
+                if (isset($identifierErrors['C'])) {
+                    $errors[] = $identifierErrors['C'];
                 } elseif ($number === '' || ! preg_match('/\A[0-9]+\z/', $number)) {
                     $errors[] = 'Activity number must contain digits only.';
                 } elseif (strlen($number) > 50) {
@@ -167,7 +169,9 @@ class AipImportController extends Controller
 
                 $voteCode = $cells[8];
                 $fundCode = $cells[9];
-                if ($voteCode !== '') {
+                if (isset($identifierErrors['I'])) {
+                    $errors[] = $identifierErrors['I'];
+                } elseif ($voteCode !== '') {
                     $vote = DB::table('votes')->where('code', $voteCode)->first(['id', 'is_active']);
                     if ($vote === null) {
                         $errors[] = 'Vote code was not found in master data.';
@@ -185,7 +189,9 @@ class AipImportController extends Controller
                 }
 
                 $subjectMatches = collect();
-                if ($cells[4] !== '') {
+                if (isset($identifierErrors['E'])) {
+                    $errors[] = $identifierErrors['E'];
+                } elseif ($cells[4] !== '') {
                     $subjectMatches = DB::table('subjects')
                         ->where('office_id', $office->id)
                         ->where('code', $cells[4])

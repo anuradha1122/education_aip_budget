@@ -9,9 +9,9 @@ type OfficeAssignment = { id: number; office_code: string; office_name: string; 
 type Funding = { fund_code: string; fund_name: string; vote_code: string; vote_description: string };
 type Activity = { id: number; activity_number: string; description: string; level: string | null; location: string | null; financial_year: { year: number }; subject: { code: string; name: string } | null; officer: { name: string } | null; office_assignments: OfficeAssignment[]; funding: Funding | null };
 type PageLink = { url: string | null; label: string; active: boolean };
-type Props = { years: Year[]; officers: Officer[]; assignments: Assignment[]; search: string; canImportAip: boolean; activities: { data: Activity[]; links: PageLink[] } };
+type Props = { years: Year[]; officers: Officer[]; assignments: Assignment[]; search: string; canImportAip: boolean; canManageAip: boolean; activities: { data: Activity[]; links: PageLink[] } };
 
-export default function AipActivities({ years, officers, assignments, search, activities, canImportAip }: Props) {
+export default function AipActivities({ years, officers, assignments, search, activities, canImportAip, canManageAip }: Props) {
     const [searchText, setSearchText] = useState(search);
     const { data, setData, post, processing, errors, recentlySuccessful, reset } = useForm({
         financial_year_id: '', activity_number: '', description: '', level: '', location: '', officer_id: '', subject_id: '',
@@ -32,7 +32,7 @@ export default function AipActivities({ years, officers, assignments, search, ac
         <div className="flex flex-col gap-6 p-4 md:p-6">
             <div>
                 <h1 className="text-2xl font-semibold">AIP activities</h1><p className="mt-2 text-sm text-muted-foreground">Create and review activities for a financial year.</p>
-                <div className="mt-3 flex flex-wrap items-center gap-x-6 gap-y-2">
+                {canManageAip && <div className="mt-3 flex flex-wrap items-center gap-x-6 gap-y-2">
                     <a href="/aip-activities/audit" className="inline-block underline">
                         View audit history
                     </a>
@@ -58,16 +58,20 @@ export default function AipActivities({ years, officers, assignments, search, ac
                             </Link>
                         </>
                     )}
-                </div>
+                </div>}
             </div>
-            <form onSubmit={submit} className="flex w-full max-w-2xl flex-col gap-4 rounded border p-4">
+            {canManageAip && <form onSubmit={submit} className="flex w-full flex-col gap-4 rounded border p-4">
                 <h2 className="text-lg font-semibold">Add activity</h2>
-                <label>Financial year<select required value={data.financial_year_id} onChange={(event) => setData('financial_year_id', event.target.value)} className="mt-1 block w-full rounded border bg-background p-2"><option value="">Select an open year</option>{years.map((year) => <option key={year.id} value={year.id}>{year.year}</option>)}</select></label>
-                {years.length === 0 && <p className="text-sm">No open financial years are available.</p>}
-                {errors.financial_year_id && <p className="text-sm text-red-600">{errors.financial_year_id}</p>}
-                <label>
-                    Activity number
-                    <input
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div>
+                        <label>Financial year<select required value={data.financial_year_id} onChange={(event) => setData('financial_year_id', event.target.value)} className="mt-1 block w-full rounded border bg-background p-2"><option value="">Select an open year</option>{years.map((year) => <option key={year.id} value={year.id}>{year.year}</option>)}</select></label>
+                        {years.length === 0 && <p className="text-sm">No open financial years are available.</p>}
+                        {errors.financial_year_id && <p className="text-sm text-red-600">{errors.financial_year_id}</p>}
+                    </div>
+                    <div>
+                        <label>
+                        Activity number
+                        <input
                         type="text"
                         required
                         maxLength={50}
@@ -75,57 +79,69 @@ export default function AipActivities({ years, officers, assignments, search, ac
                         pattern="[0-9]+"
                         value={data.activity_number}
                         onChange={(event) => {
-                            const value = event.target.value;
-
-                            if (/^[0-9]*$/.test(value)) {
-                                setData('activity_number', value);
-                            }
+                        const value = event.target.value;
+                        
+                        if (/^[0-9]*$/.test(value)) {
+                        setData('activity_number', value);
+                        }
                         }}
                         className="mt-1 block w-full rounded border bg-background p-2"
-                    />
-                </label>
-                {errors.activity_number && <p className="text-sm text-red-600">{errors.activity_number}</p>}
-                <label>Activity description<textarea required rows={3} value={data.description} onChange={(event) => setData('description', event.target.value)} className="mt-1 block w-full rounded border bg-background p-2" /></label>
-                <p className="text-sm text-muted-foreground">Enter the AIP description in English.</p>
-                {errors.description && <p className="text-sm text-red-600">{errors.description}</p>}
-                <label>
-                    Programme level (optional)
-                    <input
+                        />
+                        </label>
+                        {errors.activity_number && <p className="text-sm text-red-600">{errors.activity_number}</p>}
+                    </div>
+                    <div className="md:col-span-2">
+                        <label>Activity description<textarea required rows={3} value={data.description} onChange={(event) => setData('description', event.target.value)} className="mt-1 block w-full rounded border bg-background p-2" /></label>
+                        <p className="text-sm text-muted-foreground">Enter the AIP description in English.</p>
+                        {errors.description && <p className="text-sm text-red-600">{errors.description}</p>}
+                    </div>
+                    <div>
+                        <label>
+                        Programme level (optional)
+                        <input
                         maxLength={255}
                         value={data.level}
                         onChange={(event) => setData('level', event.target.value)}
                         placeholder="For example: Provincial, Zonal or School"
                         className="mt-1 block w-full rounded border bg-background p-2"
-                    />
-                </label>
-
-                {errors.level && (
-                    <p className="text-sm text-red-600">{errors.level}</p>
-                )}
-
-                <label>
-                    Physical location (optional)
-                    <input
+                        />
+                        </label>
+                        
+                        {errors.level && (
+                        <p className="text-sm text-red-600">{errors.level}</p>
+                        )}
+                    </div>
+                    <div>
+                        <label>
+                        Physical location (optional)
+                        <input
                         maxLength={255}
                         value={data.location}
                         onChange={(event) => setData('location', event.target.value)}
                         className="mt-1 block w-full rounded border bg-background p-2"
-                    />
-                </label>
-
-                {errors.location && (
-                    <p className="text-sm text-red-600">{errors.location}</p>
-                )}
-                {errors.location && <p className="text-sm text-red-600">{errors.location}</p>}
-                <p className="text-sm text-muted-foreground">Officer and subject may both be left blank for now. If selected, choose an assigned pair.</p>
-                <label>Officer<select value={data.officer_id} onChange={(event) => setData({ ...data, officer_id: event.target.value, subject_id: '' })} className="mt-1 block w-full rounded border bg-background p-2"><option value="">Not selected</option>{officers.map((officer) => <option key={officer.id} value={officer.id}>{officer.name} — {officer.office_name}{Number(officer.is_active) === 0 ? ' (inactive)' : ''}</option>)}</select></label>
-                {errors.officer_id && <p className="text-sm text-red-600">{errors.officer_id}</p>}
-                <label>Assigned subject<select value={data.subject_id} disabled={!data.officer_id} onChange={(event) => setData('subject_id', event.target.value)} className="mt-1 block w-full rounded border bg-background p-2"><option value="">Not selected</option>{available.map((item) => <option key={item.subject_id} value={item.subject_id}>{item.subject_code} — {item.subject_name}{Number(item.subject_active) === 0 ? ' (inactive)' : ''}</option>)}</select></label>
-                {data.officer_id && available.length === 0 && <p className="text-sm">No current assignments are available for this officer.</p>}
-                {errors.subject_id && <p className="text-sm text-red-600">{errors.subject_id}</p>}
+                        />
+                        </label>
+                        
+                        {errors.location && (
+                        <p className="text-sm text-red-600">{errors.location}</p>
+                        )}
+                    </div>
+                    <div className="md:col-span-2">
+                        <p className="text-sm text-muted-foreground">Officer and subject may both be left blank for now. If selected, choose an assigned pair.</p>
+                    </div>
+                    <div>
+                        <label>Officer<select value={data.officer_id} onChange={(event) => setData({ ...data, officer_id: event.target.value, subject_id: '' })} className="mt-1 block w-full rounded border bg-background p-2"><option value="">Not selected</option>{officers.map((officer) => <option key={officer.id} value={officer.id}>{officer.name} — {officer.office_name}{Number(officer.is_active) === 0 ? ' (inactive)' : ''}</option>)}</select></label>
+                        {errors.officer_id && <p className="text-sm text-red-600">{errors.officer_id}</p>}
+                    </div>
+                    <div>
+                        <label>Assigned subject<select value={data.subject_id} disabled={!data.officer_id} onChange={(event) => setData('subject_id', event.target.value)} className="mt-1 block w-full rounded border bg-background p-2"><option value="">Not selected</option>{available.map((item) => <option key={item.subject_id} value={item.subject_id}>{item.subject_code} — {item.subject_name}{Number(item.subject_active) === 0 ? ' (inactive)' : ''}</option>)}</select></label>
+                        {data.officer_id && available.length === 0 && <p className="text-sm">No current assignments are available for this officer.</p>}
+                        {errors.subject_id && <p className="text-sm text-red-600">{errors.subject_id}</p>}
+                    </div>
+                </div>
                 <div><button type="submit" disabled={processing || years.length === 0} className="rounded bg-primary px-4 py-2 text-primary-foreground disabled:opacity-50">{processing ? 'Saving...' : 'Create activity'}</button></div>
                 {recentlySuccessful && <p role="status" className="text-sm">Activity saved.</p>}
-            </form>
+            </form>}
             <section>
                 <h2 className="text-lg font-semibold">Activity register</h2>
                 <form onSubmit={searchActivities} className="mt-3 flex flex-wrap gap-2">

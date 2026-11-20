@@ -33,8 +33,12 @@ class AipImportTemplateController extends Controller
                 $sheet->fromArray($headers, null, 'A1');
                 $sheet->getStyle('A1:J1')->getFont()->setBold(true);
 
-                // Store activity identifiers as text, including any leading zeros.
-                $sheet->getStyle('C2:C5001')->getNumberFormat()->setFormatCode('@');
+                // Store one default style per column; Excel applies it to new cells.
+                $sheet->getStyle('C2')->getNumberFormat()->setFormatCode('@');
+                $textStyle = $sheet->getCell('C2')->getXfIndex();
+                foreach (['C', 'E', 'I', 'J'] as $identifierColumn) {
+                    $sheet->getColumnDimension($identifierColumn)->setXfIndex($textStyle);
+                }
 
                 foreach (range('A', 'J') as $column) {
                     $sheet->getColumnDimension($column)->setAutoSize(true);

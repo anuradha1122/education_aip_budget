@@ -46,12 +46,21 @@ class NewPasswordController extends Controller
         $status = Password::reset(
             $request->only('email', 'password', 'password_confirmation', 'token'),
             function ($user) use ($request) {
-                $user->forceFill([
-                    'password' => Hash::make($request->password),
-                    'remember_token' => Str::random(60),
-                ])->save();
-
-                event(new PasswordReset($user));
+                \Illuminate\Support\Facades\DB::transaction(function () use ($user, $request) {
+                    $locked = \App\Models\User::query()->lockForUpdate()->findOrFail($user->id);
+                    $locked->forceFill([
+                        'password' => Hash::make($request->password),
+                        'remember_token' => Str::random(60),
+                        'access_version' => (int) $locked->access_version + 1,
+                    ])->save();
+                    $now = now();
+                    \Illuminate\Support\Facades\DB::table('user_access_assignment_audit_events')->insert([
+                        'user_id' => $locked->id, 'actor_id' => $locked->id, 'action' => 'password_reset',
+                        'old_values' => null, 'new_values' => json_encode(['password_changed' => true], JSON_THROW_ON_ERROR),
+                        'created_at' => $now, 'updated_at' => $now,
+                    ]);
+                    event(new PasswordReset($locked));
+                });
             }
         );
 

@@ -1,4 +1,3 @@
-import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import {
@@ -13,26 +12,11 @@ import {
 import { type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import {
-    BookOpen,
     Building2,
-    Folder,
     Landmark,
     LayoutGrid,
 } from 'lucide-react';
 import AppLogo from './app-logo';
-
-const footerNavItems: NavItem[] = [
-    {
-        title: 'Repository',
-        url: 'https://github.com/laravel/react-starter-kit',
-        icon: Folder,
-    },
-    {
-        title: 'Documentation',
-        url: 'https://laravel.com/docs/starter-kits',
-        icon: BookOpen,
-    },
-];
 
 export function AppSidebar() {
     const { permissions } = usePage<SharedData>().props;
@@ -46,6 +30,7 @@ export function AppSidebar() {
     ];
 
     if (permissions?.manage_master_data) {
+        mainNavItems.push({ title: 'Users', url: '/user-management', icon: Building2 });
         mainNavItems.push(
             
             {
@@ -93,6 +78,9 @@ export function AppSidebar() {
             icon: Building2,
         });
 
+    }
+
+    if (permissions?.view_aip_register) {
         mainNavItems.push({
             title: 'AIP activities',
             url: '/aip-activities',
@@ -135,7 +123,6 @@ export function AppSidebar() {
             </SidebarContent>
 
             <SidebarFooter>
-                <NavFooter items={footerNavItems} className="mt-auto" />
                 <NavUser />
             </SidebarFooter>
         </Sidebar>

@@ -30,6 +30,7 @@ class ProfileUpdateTest extends TestCase
             ->patch('/settings/profile', [
                 'name' => 'Test User',
                 'email' => 'test@example.com',
+                'current_password' => 'password',
             ]);
 
         $response
@@ -61,39 +62,21 @@ class ProfileUpdateTest extends TestCase
         $this->assertNotNull($user->refresh()->email_verified_at);
     }
 
-    public function test_user_can_delete_their_account()
+    public function test_self_service_account_deletion_is_not_available()
     {
         $user = User::factory()->create();
 
-        $response = $this
-            ->actingAs($user)
-            ->delete('/settings/profile', [
-                'password' => 'password',
-            ]);
+        $this->actingAs($user)->delete('/settings/profile', [
+            'password' => 'password',
+        ])->assertStatus(405);
 
-        $response
-            ->assertSessionHasNoErrors()
-            ->assertRedirect('/');
-
-        $this->assertGuest();
-        $this->assertNull($user->fresh());
+        $this->assertDatabaseHas('users', ['id' => $user->id]);
+        $this->assertAuthenticatedAs($user);
+        $this->get('/settings/profile')->assertOk();
     }
 
-    public function test_correct_password_must_be_provided_to_delete_account()
+    public function test_guest_cannot_delete_an_account_through_profile_route()
     {
-        $user = User::factory()->create();
-
-        $response = $this
-            ->actingAs($user)
-            ->from('/settings/profile')
-            ->delete('/settings/profile', [
-                'password' => 'wrong-password',
-            ]);
-
-        $response
-            ->assertSessionHasErrors('password')
-            ->assertRedirect('/settings/profile');
-
-        $this->assertNotNull($user->fresh());
+        $this->delete('/settings/profile')->assertStatus(405);
     }
 }

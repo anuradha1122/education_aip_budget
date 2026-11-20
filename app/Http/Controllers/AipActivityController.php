@@ -16,8 +16,28 @@ class AipActivityController extends Controller
     {
         $search = trim($request->string('search')->toString());
 
+        $isMainAdmin = (bool) $request->user()->is_admin;
+        $officeId = null;
+        $officerId = null;
+        $provinceWide = $isMainAdmin;
+        if (! $isMainAdmin) {
+            $scope = app(\App\Services\AipRegisterScope::class)->forUser($request->user());
+            abort_if($scope === null, 403);
+            $provinceWide = $scope->role === 'provincial_admin';
+            $officeId = $scope->office_id;
+            $officerId = $scope->role === 'subject_director' ? $scope->officer_id : null;
+        }
+
         $activities = AipActivity::query()
-            ->with(['financialYear:id,year', 'subject:id,code,name,office_id', 'officer:id,name,office_id'])
+            ->with($isMainAdmin
+                ? ['financialYear:id,year', 'subject:id,code,name,office_id', 'officer:id,name,office_id']
+                : ['financialYear:id,year'])
+            ->when(! $provinceWide, fn ($query) => $query->whereExists(function ($query) use ($officeId, $officerId) {
+                $query->selectRaw('1')->from('aip_activity_offices as scoped_link')
+                    ->whereColumn('scoped_link.aip_activity_id', 'aip_activities.id')
+                    ->where('scoped_link.office_id', $officeId)
+                    ->when($officerId !== null, fn ($query) => $query->where('scoped_link.officer_id', $officerId));
+            }))
             ->when($search !== '', fn ($query) => $query->where(function ($query) use ($search) {
                 $query->where('activity_number', 'like', '%'.$search.'%')
                     ->orWhere('description', 'like', '%'.$search.'%');
@@ -30,6 +50,8 @@ class AipActivityController extends Controller
             ->leftJoin('subjects as subject', 'subject.id', '=', 'link.subject_id')
             ->leftJoin('officers as officer', 'officer.id', '=', 'link.officer_id')
             ->whereIn('link.aip_activity_id', $activityIds)
+            ->when(! $provinceWide, fn ($query) => $query->where('link.office_id', $officeId))
+            ->when($officerId !== null, fn ($query) => $query->where('link.officer_id', $officerId))
             ->orderBy('office.name')->orderBy('link.id')
             ->get([
                 'link.id', 'link.aip_activity_id', 'office.code as office_code',
@@ -44,10 +66,23 @@ class AipActivityController extends Controller
                 'entry.aip_activity_id', 'fund.code as fund_code', 'fund.name as fund_name',
                 'vote.code as vote_code', 'vote.description as vote_description',
             ])->keyBy('aip_activity_id');
-        $activities->getCollection()->each(function ($activity) use ($officeLinks, $funding) {
+        $activities->getCollection()->each(function ($activity) use ($officeLinks, $funding, $isMainAdmin) {
+            if (! $isMainAdmin) {
+                $activity->makeHidden(['subject_id', 'officer_id']);
+                $activity->setRelation('subject', null);
+                $activity->setRelation('officer', null);
+            }
             $activity->setAttribute('office_assignments', $officeLinks->get($activity->id, collect())->values()->all());
             $activity->setAttribute('funding', $funding->get($activity->id));
         });
+
+        if (! $isMainAdmin) {
+            return Inertia::render('aip-activities/index', [
+                'activities' => $activities, 'search' => $search,
+                'years' => [], 'officers' => [], 'assignments' => [],
+                'canImportAip' => false, 'canManageAip' => false,
+            ]);
+        }
 
         $years = DB::table('financial_years')->where('is_closed', false)
             ->orderByDesc('year')->get(['id', 'year']);
@@ -64,6 +99,7 @@ class AipActivityController extends Controller
         return Inertia::render('aip-activities/index', [
             ...compact('activities', 'years', 'officers', 'assignments', 'search'),
             'canImportAip' => $request->user()->can('import-aip'),
+            'canManageAip' => true,
         ]);
     }
 

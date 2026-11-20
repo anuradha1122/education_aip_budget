@@ -27,6 +27,7 @@ export interface SharedData {
     auth: Auth;
     permissions: {
         manage_master_data: boolean;
+        view_aip_register: boolean;
     };
     [key: string]: unknown;
 }

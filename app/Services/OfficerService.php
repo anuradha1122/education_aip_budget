@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class OfficerService
 {
@@ -45,6 +46,16 @@ class OfficerService
             $oldValues = $this->values($officer);
 
             $officer->fill($validated);
+
+            // The linking flow locks this officer before creating a user link.
+            // Refuse scope/status changes until each link has been removed.
+            if ($officer->isDirty(['office_id', 'is_active'])
+                && DB::table('user_officer_links')->where('officer_id', $officer->id)->exists()) {
+                $field = $officer->isDirty('office_id') ? 'office_id' : 'is_active';
+                throw ValidationException::withMessages([
+                    $field => 'Remove all user account links to this officer before changing their office or active status.',
+                ]);
+            }
 
             if (! $officer->isDirty([
                 'office_id',

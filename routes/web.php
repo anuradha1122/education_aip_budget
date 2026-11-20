@@ -38,7 +38,23 @@ Route::middleware(['auth'])->group(function () {
     })->name('dashboard');
 });
 
+Route::get('/aip-activities', [\App\Http\Controllers\AipActivityController::class, 'index'])
+    ->middleware(['auth', 'can:view-aip-register'])->name('aip-activities.index');
+
 Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
+    Route::get('/user-management/access-review/export/pdf', [\App\Http\Controllers\UserAccessReviewPdfController::class, 'download'])->name('user-management.access-review.pdf');
+    Route::get('/user-management/access-review/export/excel', [\App\Http\Controllers\UserAccessReviewExportController::class, 'excel'])->name('user-management.access-review.excel');
+    Route::get('/user-management/access-review', [\App\Http\Controllers\UserAccessReviewController::class, 'index'])->name('user-management.access-review');
+    Route::get('/user-management', [\App\Http\Controllers\UserManagementController::class, 'index'])->name('user-management.index');
+    Route::put('/user-management/{user}/officer', [\App\Http\Controllers\UserOfficerLinkController::class, 'update'])->name('user-management.officer.update');
+    Route::delete('/user-management/{user}/officer', [\App\Http\Controllers\UserOfficerLinkController::class, 'destroy'])->name('user-management.officer.destroy');
+    Route::get('/user-management/{user}/history', [\App\Http\Controllers\UserAccessHistoryController::class, 'index'])->name('user-management.history');
+    Route::patch('/user-management/{user}/import-permission', [\App\Http\Controllers\UserImportPermissionController::class, 'update'])->name('user-management.import-permission.update');
+    Route::post('/user-management', [\App\Http\Controllers\UserManagementController::class, 'store'])->name('user-management.store');
+    Route::put('/user-management/{user}/access', [\App\Http\Controllers\UserManagementController::class, 'updateAccess'])->name('user-management.access.update');
+    Route::patch('/user-management/{user}/status', [\App\Http\Controllers\UserManagementController::class, 'updateStatus'])->name('user-management.status.update');
+    Route::put('/user-management/{user}/details', [\App\Http\Controllers\UserManagementController::class, 'updateDetails'])->name('user-management.details.update');
+
     Route::get('/office-audit', [OfficeAuditController::class, 'index'])
         ->name('offices.audit');
 
@@ -429,11 +445,6 @@ Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
         \App\Http\Controllers\OfficerSubjectAssignmentController::class,
         'end',
     ])->name('officer-subject-assignments.end');
-
-    Route::get('/aip-activities', [
-        \App\Http\Controllers\AipActivityController::class,
-        'index',
-    ])->name('aip-activities.index');
 
     Route::post('/aip-activities', [
         \App\Http\Controllers\AipActivityController::class,
