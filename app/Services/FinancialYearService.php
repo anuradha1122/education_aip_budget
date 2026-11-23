@@ -87,6 +87,25 @@ class FinancialYearService
         });
     }
 
+    public function reopen(FinancialYear $financialYear, string $reason, User $actor): FinancialYear
+    {
+        $reason = trim($reason);
+        if ($reason === '' || mb_strlen($reason) > 500) {
+            throw ValidationException::withMessages(['reason' => 'Enter a reason of up to 500 characters.']);
+        }
+        return DB::transaction(function () use ($financialYear, $reason, $actor) {
+            $year = FinancialYear::query()->lockForUpdate()->findOrFail($financialYear->id);
+            if (! $year->is_closed) {
+                throw ValidationException::withMessages(['reason' => 'This financial year is already open.']);
+            }
+            $oldValues = $this->values($year);
+            $year->is_closed = false;
+            $year->save();
+            $this->recordAudit($year, $actor, 'reopened', $oldValues, $this->values($year) + ['reason' => $reason]);
+            return $year;
+        });
+    }
+
     private function validatedData(
         array $data,
         ?FinancialYear $financialYear = null

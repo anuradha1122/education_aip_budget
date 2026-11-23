@@ -53,6 +53,13 @@ class FinancialYearController extends Controller
         return redirect()->route('financial-years.index');
     }
 
+    public function reopen(Request $request, FinancialYear $financialYear, FinancialYearService $service): RedirectResponse
+    {
+        $data = $request->validate(['reason' => ['required', 'string', 'max:500']]);
+        $service->reopen($financialYear, $data['reason'], $request->user());
+        return redirect()->route('financial-years.index');
+    }
+
     private function renderPage(?FinancialYear $editingYear = null): Response
     {
         $financialYears = FinancialYear::query()

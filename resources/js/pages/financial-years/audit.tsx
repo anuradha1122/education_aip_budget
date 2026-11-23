@@ -7,6 +7,7 @@ type YearValues = {
     start_date: string;
     end_date: string;
     is_closed: boolean;
+    reason?: string;
 };
 
 type AuditEvent = {
@@ -65,6 +66,7 @@ function Values({ values }: { values: YearValues | null }) {
                     {values.is_closed ? 'Closed' : 'Open'}
                 </dd>
             </div>
+            {values.reason && <div><dt className="inline font-medium">Reason: </dt><dd className="inline">{values.reason}</dd></div>}
         </dl>
     );
 }

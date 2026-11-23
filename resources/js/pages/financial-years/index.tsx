@@ -1,7 +1,7 @@
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import { type FormEvent } from 'react';
+import { type FormEvent, useState } from 'react';
 
 type FinancialYear = {
     id: number;
@@ -44,8 +44,20 @@ function FinancialYearPage({ financialYears, editingYear }: Props) {
             end_date: editingYear?.end_date ?? '',
         });
 
+    const [reopeningYear, setReopeningYear] = useState<FinancialYear | null>(null);
+    const reopenForm = useForm({ reason: '' });
+
+    function submitReopen(event: FormEvent<HTMLFormElement>) {
+        event.preventDefault();
+        if (!reopeningYear || !window.confirm(`Reopen financial year ${reopeningYear.year}?`)) return;
+        reopenForm.patch(`/financial-years/${reopeningYear.id}/reopen`, {
+            preserveScroll: true,
+            onSuccess: () => { setReopeningYear(null); reopenForm.reset(); },
+        });
+    }
+
     function closeYear(year: FinancialYear) {
-        if (window.confirm(`Close financial year ${year.year}? It cannot be reopened from this page.`)) {
+        if (window.confirm(`Close financial year ${year.year}? Reopening requires an administrator and a reason.`)) {
             router.patch(`/financial-years/${year.id}/close`, {}, { preserveScroll: true });
         }
     }
@@ -198,6 +210,17 @@ function FinancialYearPage({ financialYears, editingYear }: Props) {
                     </form>
                 </section>
 
+                {reopeningYear && <section className="rounded-lg border p-4">
+                    <h2 className="mb-2 text-lg font-semibold">Reopen financial year {reopeningYear.year}</h2>
+                    <p className="mb-3 text-sm text-muted-foreground">Provide a reason. Reopening allows changes in workflows that use the financial year status.</p>
+                    <form onSubmit={submitReopen} className="space-y-3">
+                        <label htmlFor="reopen-reason" className="block text-sm font-medium">Reason for reopening</label>
+                        <textarea id="reopen-reason" value={reopenForm.data.reason} onChange={event => reopenForm.setData('reason', event.target.value)} maxLength={500} required className="w-full rounded-md border bg-background p-2" />
+                        {reopenForm.errors.reason && <p role="alert" className="text-sm text-red-600">{reopenForm.errors.reason}</p>}
+                        <div className="flex gap-2"><button disabled={reopenForm.processing} className="rounded border px-4 py-2 hover:bg-accent disabled:opacity-50">Reopen year</button><button type="button" onClick={() => { setReopeningYear(null); reopenForm.reset(); }} className="rounded border px-4 py-2 hover:bg-accent">Cancel</button></div>
+                    </form>
+                </section>}
+
                 <section className="rounded-lg border p-4">
                     <h2 className="mb-4 text-lg font-semibold">
                         Financial year list
@@ -244,7 +267,7 @@ function FinancialYearPage({ financialYears, editingYear }: Props) {
                                             </td>
                                             <td className="p-2">
                                                 {financialYear.is_closed ? (
-                                                    'Closed'
+                                                    <button type="button" onClick={() => { reopenForm.clearErrors(); reopenForm.reset(); setReopeningYear(financialYear); }} className="inline-flex rounded border px-3 py-1.5 hover:bg-accent">Reopen year</button>
                                                 ) : (
                                                     <div className="flex flex-wrap gap-2">
                                                         <Link href={`/financial-years/${financialYear.id}/edit`} className="inline-flex rounded border px-3 py-1.5 hover:bg-accent">Edit</Link>

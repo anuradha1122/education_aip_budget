@@ -166,6 +166,9 @@ Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
     Route::patch('/financial-years/{financialYear}/close', [FinancialYearController::class, 'close'])
         ->name('financial-years.close');
 
+    Route::patch('/financial-years/{financialYear}/reopen', [FinancialYearController::class, 'reopen'])
+        ->name('financial-years.reopen');
+
     Route::get('/financial-year-audit', [FinancialYearAuditController::class, 'index'])
         ->name('financial-years.audit');
 

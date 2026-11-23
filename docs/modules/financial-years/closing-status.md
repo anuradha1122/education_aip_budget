@@ -7,9 +7,12 @@ regular-user requests must be denied. Existing activity creation and financial-
 year editing checks reject closed years; these paths still require regression
 verification in the deployment environment.
 
-This is not the completed M04 period-lock workflow. Reopening, reason and
-authority rules, validation across all other financial operations, concurrent
-write checks on the production database and acceptance testing remain open.
-There is no reopening action in this change. Do not close a production year
+This is not the completed M04 period-lock workflow. A closed year can be reopened by an existing administrator with a required
+reason; the actor, reason and old/new values are recorded in the audit history.
+The department must confirm reopening authority and approval rules. Validation
+across all financial operations, concurrent write checks on the production
+database and acceptance testing remain open. Do not close a production year
 until the department agrees the workflow and all relevant operations have been
-verified. Automated and browser verification of this change are pending.
+verified. The developer reported that close, closed-year edit and provincial AIP creation
+tests, TypeScript, build and a closed-year browser check passed. Reopening
+tests and browser verification are pending.
