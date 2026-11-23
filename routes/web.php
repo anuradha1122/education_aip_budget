@@ -41,6 +41,9 @@ Route::middleware(['auth'])->group(function () {
 Route::get('/aip-activities', [\App\Http\Controllers\AipActivityController::class, 'index'])
     ->middleware(['auth', 'can:view-aip-register'])->name('aip-activities.index');
 
+Route::post('/aip-activities', [\App\Http\Controllers\AipActivityController::class, 'store'])
+    ->middleware(['auth', 'can:create-aip-activity'])->name('aip-activities.store');
+
 Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
     Route::get('/user-management/access-review/export/pdf', [\App\Http\Controllers\UserAccessReviewPdfController::class, 'download'])->name('user-management.access-review.pdf');
     Route::get('/user-management/access-review/export/excel', [\App\Http\Controllers\UserAccessReviewExportController::class, 'excel'])->name('user-management.access-review.excel');
@@ -159,6 +162,9 @@ Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
 
     Route::post('/financial-years', [FinancialYearController::class, 'store'])
         ->name('financial-years.store');
+
+    Route::patch('/financial-years/{financialYear}/close', [FinancialYearController::class, 'close'])
+        ->name('financial-years.close');
 
     Route::get('/financial-year-audit', [FinancialYearAuditController::class, 'index'])
         ->name('financial-years.audit');
@@ -445,11 +451,6 @@ Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
         \App\Http\Controllers\OfficerSubjectAssignmentController::class,
         'end',
     ])->name('officer-subject-assignments.end');
-
-    Route::post('/aip-activities', [
-        \App\Http\Controllers\AipActivityController::class,
-        'store',
-    ])->name('aip-activities.store');
 
     Route::get('/aip-activities/audit', [
         \App\Http\Controllers\AipActivityAuditController::class,

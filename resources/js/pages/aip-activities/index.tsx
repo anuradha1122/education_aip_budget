@@ -9,9 +9,9 @@ type OfficeAssignment = { id: number; office_code: string; office_name: string; 
 type Funding = { fund_code: string; fund_name: string; vote_code: string; vote_description: string };
 type Activity = { id: number; activity_number: string; description: string; level: string | null; location: string | null; financial_year: { year: number }; subject: { code: string; name: string } | null; officer: { name: string } | null; office_assignments: OfficeAssignment[]; funding: Funding | null };
 type PageLink = { url: string | null; label: string; active: boolean };
-type Props = { years: Year[]; officers: Officer[]; assignments: Assignment[]; search: string; canImportAip: boolean; canManageAip: boolean; activities: { data: Activity[]; links: PageLink[] } };
+type Props = { years: Year[]; officers: Officer[]; assignments: Assignment[]; search: string; canImportAip: boolean; canManageAip: boolean; canCreateAip: boolean; activities: { data: Activity[]; links: PageLink[] } };
 
-export default function AipActivities({ years, officers, assignments, search, activities, canImportAip, canManageAip }: Props) {
+export default function AipActivities({ years, officers, assignments, search, activities, canImportAip, canManageAip, canCreateAip }: Props) {
     const [searchText, setSearchText] = useState(search);
     const { data, setData, post, processing, errors, recentlySuccessful, reset } = useForm({
         financial_year_id: '', activity_number: '', description: '', level: '', location: '', officer_id: '', subject_id: '',
@@ -60,7 +60,7 @@ export default function AipActivities({ years, officers, assignments, search, ac
                     )}
                 </div>}
             </div>
-            {canManageAip && <form onSubmit={submit} className="flex w-full flex-col gap-4 rounded border p-4">
+            {canCreateAip && <form onSubmit={submit} className="flex w-full flex-col gap-4 rounded border p-4">
                 <h2 className="text-lg font-semibold">Add activity</h2>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div>
@@ -80,7 +80,7 @@ export default function AipActivities({ years, officers, assignments, search, ac
                         value={data.activity_number}
                         onChange={(event) => {
                         const value = event.target.value;
-                        
+
                         if (/^[0-9]*$/.test(value)) {
                         setData('activity_number', value);
                         }
@@ -106,7 +106,7 @@ export default function AipActivities({ years, officers, assignments, search, ac
                         className="mt-1 block w-full rounded border bg-background p-2"
                         />
                         </label>
-                        
+
                         {errors.level && (
                         <p className="text-sm text-red-600">{errors.level}</p>
                         )}
@@ -121,7 +121,7 @@ export default function AipActivities({ years, officers, assignments, search, ac
                         className="mt-1 block w-full rounded border bg-background p-2"
                         />
                         </label>
-                        
+
                         {errors.location && (
                         <p className="text-sm text-red-600">{errors.location}</p>
                         )}

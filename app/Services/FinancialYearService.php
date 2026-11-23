@@ -72,6 +72,21 @@ class FinancialYearService
         });
     }
 
+    public function close(FinancialYear $financialYear, User $actor): FinancialYear
+    {
+        return DB::transaction(function () use ($financialYear, $actor) {
+            $year = FinancialYear::query()->lockForUpdate()->findOrFail($financialYear->id);
+            if ($year->is_closed) {
+                return $year;
+            }
+            $oldValues = $this->values($year);
+            $year->is_closed = true;
+            $year->save();
+            $this->recordAudit($year, $actor, 'closed', $oldValues, $this->values($year));
+            return $year;
+        });
+    }
+
     private function validatedData(
         array $data,
         ?FinancialYear $financialYear = null

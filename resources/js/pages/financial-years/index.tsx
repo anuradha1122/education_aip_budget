@@ -1,6 +1,6 @@
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, router, useForm } from '@inertiajs/react';
 import { type FormEvent } from 'react';
 
 type FinancialYear = {
@@ -43,6 +43,12 @@ function FinancialYearPage({ financialYears, editingYear }: Props) {
             start_date: editingYear?.start_date ?? '',
             end_date: editingYear?.end_date ?? '',
         });
+
+    function closeYear(year: FinancialYear) {
+        if (window.confirm(`Close financial year ${year.year}? It cannot be reopened from this page.`)) {
+            router.patch(`/financial-years/${year.id}/close`, {}, { preserveScroll: true });
+        }
+    }
 
     function submit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
@@ -240,12 +246,10 @@ function FinancialYearPage({ financialYears, editingYear }: Props) {
                                                 {financialYear.is_closed ? (
                                                     'Closed'
                                                 ) : (
-                                                    <Link
-                                                        href={`/financial-years/${financialYear.id}/edit`}
-                                                        className="underline"
-                                                    >
-                                                        Edit
-                                                    </Link>
+                                                    <div className="flex flex-wrap gap-2">
+                                                        <Link href={`/financial-years/${financialYear.id}/edit`} className="inline-flex rounded border px-3 py-1.5 hover:bg-accent">Edit</Link>
+                                                        <button type="button" onClick={() => closeYear(financialYear)} className="inline-flex rounded border px-3 py-1.5 hover:bg-accent">Close year</button>
+                                                    </div>
                                                 )}
                                             </td>
                                         </tr>

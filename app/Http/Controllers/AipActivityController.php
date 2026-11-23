@@ -76,11 +76,12 @@ class AipActivityController extends Controller
             $activity->setAttribute('funding', $funding->get($activity->id));
         });
 
-        if (! $isMainAdmin) {
+        $canCreateAip = $request->user()->can('create-aip-activity');
+        if (! $canCreateAip) {
             return Inertia::render('aip-activities/index', [
                 'activities' => $activities, 'search' => $search,
                 'years' => [], 'officers' => [], 'assignments' => [],
-                'canImportAip' => false, 'canManageAip' => false,
+                'canImportAip' => false, 'canManageAip' => false, 'canCreateAip' => false,
             ]);
         }
 
@@ -99,7 +100,8 @@ class AipActivityController extends Controller
         return Inertia::render('aip-activities/index', [
             ...compact('activities', 'years', 'officers', 'assignments', 'search'),
             'canImportAip' => $request->user()->can('import-aip'),
-            'canManageAip' => true,
+            'canManageAip' => $isMainAdmin,
+            'canCreateAip' => $canCreateAip,
         ]);
     }
 

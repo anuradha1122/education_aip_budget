@@ -302,3 +302,14 @@ by their existing gates; the recorded provincial role does not grant them.
 Removal of the role denies province-wide register access on the next request.
 Automated and browser verification are pending; wider provincial administrator
 permissions still require definition and implementation.
+
+## Provincial AIP activity creation
+
+The requirements draft assigns AIP record creation to the Provincial Budget
+Administrator. A user with a valid province-wide provincial-admin assignment
+can create an AIP activity using the existing validation, financial-year lock
+and audit service. The dedicated route permission does not grant master-data,
+user-management, audit-history or AIP-import access. Office assignment and
+funding remain separate workflows. Automated and browser checks are pending.
+The developer previously reported the provincial register and associated
+regression tests and browser check passed.

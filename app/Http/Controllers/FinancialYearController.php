@@ -47,6 +47,12 @@ class FinancialYearController extends Controller
         return redirect()->route('financial-years.index');
     }
 
+    public function close(Request $request, FinancialYear $financialYear, FinancialYearService $service): RedirectResponse
+    {
+        $service->close($financialYear, $request->user());
+        return redirect()->route('financial-years.index');
+    }
+
     private function renderPage(?FinancialYear $editingYear = null): Response
     {
         $financialYears = FinancialYear::query()
