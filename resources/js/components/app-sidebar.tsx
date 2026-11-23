@@ -58,6 +58,11 @@ export function AppSidebar() {
                 url: '/subjects',
                 icon: Landmark,
             },
+            {
+                title: 'Financial years',
+                url: '/financial-years',
+                icon: Landmark,
+            },
         );
 
         mainNavItems.push({
@@ -78,6 +83,14 @@ export function AppSidebar() {
             icon: Building2,
         });
 
+    }
+
+    if (permissions?.manage_financial_years) {
+        mainNavItems.push({
+            title: 'Financial years',
+            url: '/financial-years',
+            icon: Landmark,
+        });
     }
 
     if (permissions?.view_aip_register) {

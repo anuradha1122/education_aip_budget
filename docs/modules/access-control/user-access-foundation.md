@@ -313,3 +313,13 @@ user-management, audit-history or AIP-import access. Office assignment and
 funding remain separate workflows. Automated and browser checks are pending.
 The developer previously reported the provincial register and associated
 regression tests and browser check passed.
+
+## Financial-year access
+
+System administrators and provincial administrators can view, create, edit,
+close and reopen financial years and view their audit history. A provincial
+administrator must have a province-wide assignment with no office.
+
+Zonal administrators cannot access financial-year routes. Reopening still
+requires a reason and records the actor and change in the audit history.
+Financial-year access does not grant user-management or master-data access.

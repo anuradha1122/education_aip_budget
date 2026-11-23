@@ -44,6 +44,29 @@ Route::get('/aip-activities', [\App\Http\Controllers\AipActivityController::clas
 Route::post('/aip-activities', [\App\Http\Controllers\AipActivityController::class, 'store'])
     ->middleware(['auth', 'can:create-aip-activity'])->name('aip-activities.store');
 
+Route::middleware(['auth', 'can:manage-financial-years'])->group(function () {
+    Route::get('/financial-years', [FinancialYearController::class, 'index'])
+        ->name('financial-years.index');
+
+    Route::post('/financial-years', [FinancialYearController::class, 'store'])
+        ->name('financial-years.store');
+
+    Route::patch('/financial-years/{financialYear}/close', [FinancialYearController::class, 'close'])
+        ->name('financial-years.close');
+
+    Route::patch('/financial-years/{financialYear}/reopen', [FinancialYearController::class, 'reopen'])
+        ->name('financial-years.reopen');
+
+    Route::get('/financial-year-audit', [FinancialYearAuditController::class, 'index'])
+        ->name('financial-years.audit');
+
+    Route::get('/financial-years/{financialYear}/edit', [FinancialYearController::class, 'edit'])
+        ->name('financial-years.edit');
+
+    Route::put('/financial-years/{financialYear}', [FinancialYearController::class, 'update'])
+        ->name('financial-years.update');
+});
+
 Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
     Route::get('/user-management/access-review/export/pdf', [\App\Http\Controllers\UserAccessReviewPdfController::class, 'download'])->name('user-management.access-review.pdf');
     Route::get('/user-management/access-review/export/excel', [\App\Http\Controllers\UserAccessReviewExportController::class, 'excel'])->name('user-management.access-review.excel');
@@ -156,31 +179,6 @@ Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
 
     Route::post('/votes/import', [VoteImportController::class, 'store'])
         ->name('votes.import.store');
-
-    Route::get('/financial-years', [FinancialYearController::class, 'index'])
-        ->name('financial-years.index');
-
-    Route::post('/financial-years', [FinancialYearController::class, 'store'])
-        ->name('financial-years.store');
-
-    Route::patch('/financial-years/{financialYear}/close', [FinancialYearController::class, 'close'])
-        ->name('financial-years.close');
-
-    Route::patch('/financial-years/{financialYear}/reopen', [FinancialYearController::class, 'reopen'])
-        ->name('financial-years.reopen');
-
-    Route::get('/financial-year-audit', [FinancialYearAuditController::class, 'index'])
-        ->name('financial-years.audit');
-
-    Route::get(
-        '/financial-years/{financialYear}/edit',
-        [FinancialYearController::class, 'edit']
-    )->name('financial-years.edit');
-
-    Route::put(
-        '/financial-years/{financialYear}',
-        [FinancialYearController::class, 'update']
-    )->name('financial-years.update');
 
     Route::get('/subjects', [SubjectController::class, 'index'])
         ->name('subjects.index');

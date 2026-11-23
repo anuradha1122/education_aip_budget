@@ -49,6 +49,7 @@ class HandleInertiaRequests extends Middleware
             'permissions' => [
                 'manage_master_data' => $request->user()?->can('manage-master-data') ?? false,
                 'view_aip_register' => $request->user()?->can('view-aip-register') ?? false,
+                'manage_financial_years' => $request->user()?->can('manage-financial-years') ?? false,
             ],
         ]);
     }

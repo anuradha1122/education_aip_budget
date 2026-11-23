@@ -28,6 +28,7 @@ export interface SharedData {
     permissions: {
         manage_master_data: boolean;
         view_aip_register: boolean;
+        manage_financial_years: boolean;
     };
     [key: string]: unknown;
 }

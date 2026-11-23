@@ -26,6 +26,16 @@ class AppServiceProvider extends ServiceProvider
             return (bool) $user->is_admin;
         });
 
+        Gate::define('manage-financial-years', function (User $user): bool {
+            if ((bool) $user->is_admin) {
+                return true;
+            }
+
+            $scope = app(\App\Services\AipRegisterScope::class)->forUser($user);
+
+            return $scope !== null && $scope->role === 'provincial_admin';
+        });
+
         Gate::define('view-aip-register', function (User $user): bool {
             if ((bool) $user->is_admin) {
                 return true;
