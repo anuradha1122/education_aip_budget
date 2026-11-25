@@ -341,3 +341,12 @@ and audit events apply. Zonal administrators and subject directors cannot
 use these management routes. AIP import remains separately restricted.
 
 Automated and browser verification is pending.
+
+## Access review permission coverage
+
+The access review page, Excel export and PDF show current financial-year,
+organisational-data and AIP-assignment permissions alongside AIP register
+and import access. Inactive accounts are shown as not allowed. The report
+does not cover every system permission.
+
+Automated and browser verification is pending.

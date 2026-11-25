@@ -39,6 +39,9 @@ class UserAccessReviewController extends Controller
             $row->can_import_aip = (bool) $row->can_import_aip;
             $row->register_allowed = $active && Gate::forUser($user)->allows('view-aip-register');
             $row->import_allowed = $active && Gate::forUser($user)->allows('import-aip');
+            $row->financial_years_allowed = $active && Gate::forUser($user)->allows('manage-financial-years');
+            $row->organisational_data_allowed = $active && Gate::forUser($user)->allows('manage-organisational-data');
+            $row->aip_assignments_allowed = $active && Gate::forUser($user)->allows('manage-aip-assignments');
             return $row;
         });
 

@@ -28,6 +28,9 @@ class UserAccessReviewPdfController extends Controller
             $account = $accounts->get($row->id);
             $row->register_allowed = (bool) $row->is_active && Gate::forUser($account)->allows('view-aip-register');
             $row->import_allowed = (bool) $row->is_active && Gate::forUser($account)->allows('import-aip');
+            $row->financial_years_allowed = (bool) $row->is_active && Gate::forUser($account)->allows('manage-financial-years');
+            $row->organisational_data_allowed = (bool) $row->is_active && Gate::forUser($account)->allows('manage-organisational-data');
+            $row->aip_assignments_allowed = (bool) $row->is_active && Gate::forUser($account)->allows('manage-aip-assignments');
         }
         return Pdf::loadView('pdf.user-access-review', compact('rows', 'search'))
             ->setPaper('a4', 'landscape')

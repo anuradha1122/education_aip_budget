@@ -32,6 +32,9 @@ class UserAccessReviewPdfTest extends TestCase
         $this->actingAs($admin)->get('/user-management/access-review/export/pdf?search=PDF%20unique%20name')->assertOk()->assertDownload('user-access-review.pdf');
         // Verify rendered view separately, including escaping and empty results.
         $row = (object) ['name' => '<Test>', 'email' => 'test@example.test', 'is_active' => true, 'role' => 'zonal_admin', 'office_name' => 'PDF office', 'office_code' => 'PDF', 'office_active' => true, 'officer_name' => null, 'officer_active' => null, 'is_admin' => false, 'can_import_aip' => false, 'register_allowed' => true, 'import_allowed' => false];
+        $row->financial_years_allowed = false;
+        $row->organisational_data_allowed = false;
+        $row->aip_assignments_allowed = false;
         $this->view('pdf.user-access-review', ['rows' => collect([$row]), 'search' => 'PDF'])->assertSee('&lt;Test&gt;', false)->assertSee('Allowed')->assertSee('Not allowed');
         $this->view('pdf.user-access-review', ['rows' => collect(), 'search' => 'none'])->assertSee('No users found.');
     }
