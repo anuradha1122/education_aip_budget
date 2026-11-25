@@ -322,3 +322,13 @@ Before M05 is reported as complete:
 - Complete relevant audit and correction checks.
 - Run the relevant automated tests and browser acceptance checks.
 - Review the module documentation and prepare the completion report.
+
+
+## Provincial AIP office and funding access
+
+System administrators and province-wide provincial administrators can link
+activities to offices and associate votes and funds. Closed-year validation
+and audit events apply. Zonal administrators and subject directors cannot
+use these management routes. AIP import remains separately restricted.
+
+Automated and browser verification is pending.

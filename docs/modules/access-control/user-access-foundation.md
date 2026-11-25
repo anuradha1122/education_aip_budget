@@ -332,3 +332,12 @@ not granted this access. User management, estimate routes and AIP import
 retain their existing restrictions. The permission is checked server-side and
 shared separately for sidebar navigation. Validation in the development
 environment is pending.
+
+## Provincial AIP office and funding access
+
+System administrators and province-wide provincial administrators can link
+activities to offices and associate votes and funds. Closed-year validation
+and audit events apply. Zonal administrators and subject directors cannot
+use these management routes. AIP import remains separately restricted.
+
+Automated and browser verification is pending.

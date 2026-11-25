@@ -464,12 +464,7 @@ Route::middleware(['auth', 'can:manage-organisational-data'])->group(function ()
 
 });
 
-Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
-    Route::get('/aip-activities/audit', [
-        \App\Http\Controllers\AipActivityAuditController::class,
-        'index',
-    ])->name('aip-activities.audit');
-
+Route::middleware(['auth', 'can:manage-aip-assignments'])->group(function () {
     Route::get('/aip-activity-offices', [AipActivityOfficeController::class, 'index'])
         ->name('aip-activity-offices.index');
 
@@ -481,6 +476,14 @@ Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
 
     Route::post('/aip-funding-entries', [AipFundingEntryController::class, 'store'])
         ->name('aip-funding-entries.store');
+
+});
+
+Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
+    Route::get('/aip-activities/audit', [
+        \App\Http\Controllers\AipActivityAuditController::class,
+        'index',
+    ])->name('aip-activities.audit');
 
     Route::get('/aip-activities/import/template', [AipImportTemplateController::class, 'download'])
         ->middleware('can:import-aip')->name('aip-activities.import.template');

@@ -81,7 +81,7 @@ class AipActivityController extends Controller
             return Inertia::render('aip-activities/index', [
                 'activities' => $activities, 'search' => $search,
                 'years' => [], 'officers' => [], 'assignments' => [],
-                'canImportAip' => false, 'canManageAip' => false, 'canCreateAip' => false,
+                'canImportAip' => false, 'canManageAip' => false, 'canManageAipAssignments' => false, 'canCreateAip' => false,
             ]);
         }
 
@@ -101,6 +101,7 @@ class AipActivityController extends Controller
             ...compact('activities', 'years', 'officers', 'assignments', 'search'),
             'canImportAip' => $request->user()->can('import-aip'),
             'canManageAip' => $isMainAdmin,
+            'canManageAipAssignments' => $request->user()->can('manage-aip-assignments'),
             'canCreateAip' => $canCreateAip,
         ]);
     }
