@@ -350,3 +350,19 @@ and import access. Inactive accounts are shown as not allowed. The report
 does not cover every system permission.
 
 Automated and browser verification is pending.
+
+## Password change policy
+
+Passwords assigned when an account is created or reset by an administrator
+are not temporary. Users are not required to change them at first login or
+after an administrator reset. Users may change their password through
+account settings or use the password reset process when needed.
+
+## Role changes in existing sessions
+
+A feature test confirms that changing a signed-in user from provincial
+administrator to zonal administrator removes access to financial-year,
+master-data and AIP-assignment routes on the next request. The user remains
+signed in and can access the zonal AIP register. The change is audited.
+
+RoleChangeSessionAccessTest passed: 1 test, 15 assertions.
