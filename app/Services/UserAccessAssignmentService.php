@@ -47,6 +47,17 @@ class UserAccessAssignmentService
                 return;
             }
             $now = now();
+            // Removing provincial scope also revokes its import grant.
+            if (! (bool) $user->is_admin && (bool) $user->can_import_aip
+                && ($new['role'] !== 'provincial_admin' || $new['office_id'] !== null)) {
+                DB::table('users')->where('id', $user->id)->update(['can_import_aip' => false, 'updated_at' => $now]);
+                DB::table('user_access_assignment_audit_events')->insert([
+                    'user_id' => $user->id, 'actor_id' => $actor->id, 'action' => 'import_permission_updated',
+                    'old_values' => json_encode(['can_import_aip' => true], JSON_THROW_ON_ERROR),
+                    'new_values' => json_encode(['can_import_aip' => false], JSON_THROW_ON_ERROR),
+                    'created_at' => $now, 'updated_at' => $now,
+                ]);
+            }
             // A changed role or office must not reactivate an earlier officer link.
             if ($current !== null) {
                 $link = DB::table('user_officer_links')->where('user_id', $user->id)->first();

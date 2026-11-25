@@ -292,6 +292,16 @@ The developer reported that email-change attempt limiting and profile
 regression tests and a browser check passed. Production cache and concurrency
 verification remain open.
 
+System administrators and province-wide provincial administrators may
+import AIP activities when separately granted import permission by a system
+administrator. Import is denied by default. Grants and revocations are
+audited. Changing a provincial administrator to another role revokes the
+grant; changing back does not restore it automatically.
+
+The provincial import feature test passed: 4 tests, 51 assertions.
+Related permission, assignment, unlink and access-review tests, the
+TypeScript check, build and browser test also passed.
+
 ## Provincial AIP register access
 
 A user recorded as provincial administrator with no office assignment may
@@ -323,6 +333,7 @@ administrator must have a province-wide assignment with no office.
 Zonal administrators cannot access financial-year routes. Reopening still
 requires a reason and records the actor and change in the audit history.
 Financial-year access does not grant user-management or master-data access.
+
 ## Provincial organisational master-data access
 
 System administrators and provincial administrators with a province-wide role

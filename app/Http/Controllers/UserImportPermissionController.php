@@ -15,10 +15,16 @@ class UserImportPermissionController extends Controller
         $data = $request->validate(['can_import_aip' => ['required', 'boolean']]);
         DB::transaction(function () use ($request, $user, $data) {
             $target = DB::table('users')->where('id', $user->id)->lockForUpdate()->first();
-            if (! $target || ! (bool) $target->is_admin) {
-                throw ValidationException::withMessages(['can_import_aip' => 'Only existing administrators can receive the import permission.']);
+            if (! $target) {
+                throw ValidationException::withMessages(['can_import_aip' => 'The selected user does not exist.']);
             }
             $allowed = (bool) $data['can_import_aip'];
+            $provincial = DB::table('user_access_assignments')
+                ->where('user_id', $target->id)->where('role', 'provincial_admin')
+                ->whereNull('office_id')->exists();
+            if ($allowed && ! (bool) $target->is_admin && ! $provincial) {
+                throw ValidationException::withMessages(['can_import_aip' => 'Only system or province-wide provincial administrators can receive import permission.']);
+            }
             if ($allowed && ! (bool) $target->can_import_aip && (int) $target->id === (int) $request->user()->id) {
                 throw ValidationException::withMessages(['can_import_aip' => 'Another administrator must grant your import permission.']);
             }

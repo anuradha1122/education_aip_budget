@@ -73,7 +73,17 @@ class AppServiceProvider extends ServiceProvider
         });
 
         Gate::define('import-aip', function (User $user): bool {
-            return (bool) $user->is_admin && (bool) $user->can_import_aip;
+            if (! (bool) $user->can_import_aip) {
+                return false;
+            }
+
+            if ((bool) $user->is_admin) {
+                return true;
+            }
+
+            $scope = app(\App\Services\AipRegisterScope::class)->forUser($user);
+
+            return $scope !== null && $scope->role === 'provincial_admin';
         });
     }
 }

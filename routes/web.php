@@ -485,17 +485,21 @@ Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
         'index',
     ])->name('aip-activities.audit');
 
+
+});
+
+Route::middleware(['auth', 'can:import-aip'])->group(function () {
     Route::get('/aip-activities/import/template', [AipImportTemplateController::class, 'download'])
-        ->middleware('can:import-aip')->name('aip-activities.import.template');
+        ->name('aip-activities.import.template');
 
     Route::get('/aip-activities/import', [AipImportController::class, 'index'])
-        ->middleware('can:import-aip')->name('aip-activities.import.index');
+        ->name('aip-activities.import.index');
 
     Route::post('/aip-activities/import/validate', [AipImportController::class, 'validateFile'])
-        ->middleware('can:import-aip')->name('aip-activities.import.validate');
+        ->name('aip-activities.import.validate');
 
     Route::post('/aip-activities/import/save', [AipImportController::class, 'save'])
-        ->middleware('can:import-aip')->name('aip-activities.import.save');
+        ->name('aip-activities.import.save');
 });
 
 require __DIR__.'/settings.php';
