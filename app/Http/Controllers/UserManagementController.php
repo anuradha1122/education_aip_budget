@@ -137,6 +137,8 @@ class UserManagementController extends Controller
             $now = now();
             $values = ['name' => $name, 'email' => $email, 'updated_at' => $now];
             if ($passwordChanged) {
+                // Invalidate links issued to the old email before changing credentials.
+                \Illuminate\Support\Facades\Password::broker()->deleteToken(User::query()->findOrFail($target->id));
                 $values['password'] = Hash::make($data['password']);
             }
             if ($emailChanged) {

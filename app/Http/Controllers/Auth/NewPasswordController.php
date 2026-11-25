@@ -48,6 +48,10 @@ class NewPasswordController extends Controller
             function ($user) use ($request) {
                 \Illuminate\Support\Facades\DB::transaction(function () use ($user, $request) {
                     $locked = \App\Models\User::query()->lockForUpdate()->findOrFail($user->id);
+                    // Recheck after acquiring the lock: another password change may have revoked this link.
+                    if (! Password::broker()->tokenExists($locked, $request->string('token')->toString())) {
+                        throw ValidationException::withMessages(['email' => __(Password::INVALID_TOKEN)]);
+                    }
                     $locked->forceFill([
                         'password' => Hash::make($request->password),
                         'remember_token' => Str::random(60),

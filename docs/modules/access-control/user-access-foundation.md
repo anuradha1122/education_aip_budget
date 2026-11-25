@@ -366,3 +366,13 @@ master-data and AIP-assignment routes on the next request. The user remains
 signed in and can access the zonal AIP register. The change is audited.
 
 RoleChangeSessionAccessTest passed: 1 test, 15 assertions.
+
+## Password-reset link revocation
+
+A successful administrator password change or self-service password change
+invalidates an outstanding reset link. A rejected password change leaves the
+link valid. The reset controller rechecks the token after locking the user.
+
+PasswordResetLinkRevocationTest passed: 3 tests, 13 assertions. Password-update,
+password-reset, account-detail and session-revocation regression tests passed.
+Concurrent reset behavior still requires separate verification.

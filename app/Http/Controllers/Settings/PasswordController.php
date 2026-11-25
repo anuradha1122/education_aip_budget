@@ -39,6 +39,7 @@ class PasswordController extends Controller
             if (! Hash::check($validated['current_password'], $user->password)) {
                 throw \Illuminate\Validation\ValidationException::withMessages(['current_password' => __('auth.password')]);
             }
+            \Illuminate\Support\Facades\Password::broker()->deleteToken($user);
             $version = (int) $user->access_version + 1;
             $user->forceFill([
                 'password' => Hash::make($validated['password']),
