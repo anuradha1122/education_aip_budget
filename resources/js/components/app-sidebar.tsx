@@ -31,6 +31,9 @@ export function AppSidebar() {
 
     if (permissions?.manage_master_data) {
         mainNavItems.push({ title: 'Users', url: '/user-management', icon: Building2 });
+    }
+
+    if (permissions?.manage_organisational_data) {
         mainNavItems.push(
             
             {
@@ -49,18 +52,8 @@ export function AppSidebar() {
                 icon: Landmark,
             },
             {
-                title: 'Financial years',
-                url: '/financial-years',
-                icon: Landmark,
-            },
-            {
                 title: 'Subjects',
                 url: '/subjects',
-                icon: Landmark,
-            },
-            {
-                title: 'Financial years',
-                url: '/financial-years',
                 icon: Landmark,
             },
         );
@@ -101,7 +94,7 @@ export function AppSidebar() {
         });
     }
 
-    if (permissions?.manage_master_data) {
+    if (permissions?.manage_organisational_data) {
         mainNavItems.push({
             title: 'Expense Categories',
             url: '/expense-categories',
@@ -109,7 +102,7 @@ export function AppSidebar() {
         });
     }
 
-    if (permissions?.manage_master_data) {
+    if (permissions?.manage_organisational_data) {
         mainNavItems.push({
             title: 'Officer–subject assignments',
             url: '/officer-subject-assignments',

@@ -13,7 +13,7 @@ class FinancialYearRoleAccessTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_provincial_admin_can_manage_financial_years_without_master_data_access(): void
+    public function test_provincial_admin_can_manage_financial_years_without_user_management_access(): void
     {
         $user = User::factory()->create();
 
@@ -65,7 +65,7 @@ class FinancialYearRoleAccessTest extends TestCase
         $this->assertFalse($year->fresh()->is_closed);
         $this->get('/financial-year-audit')->assertOk();
         $this->get('/user-management')->assertForbidden();
-        $this->get('/offices')->assertForbidden();
+        $this->get('/offices')->assertOk();
 
         $this->assertDatabaseHas('financial_year_audit_events', [
             'financial_year_id' => $year->id,

@@ -81,6 +81,9 @@ Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
     Route::patch('/user-management/{user}/status', [\App\Http\Controllers\UserManagementController::class, 'updateStatus'])->name('user-management.status.update');
     Route::put('/user-management/{user}/details', [\App\Http\Controllers\UserManagementController::class, 'updateDetails'])->name('user-management.details.update');
 
+});
+
+Route::middleware(['auth', 'can:manage-organisational-data'])->group(function () {
     Route::get('/office-audit', [OfficeAuditController::class, 'index'])
         ->name('offices.audit');
 
@@ -413,6 +416,9 @@ Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
         'index',
     ])->name('expense-categories.audit');
 
+});
+
+Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
     Route::get('/estimate-circular-settings', [
         \App\Http\Controllers\EstimateCircularSettingsController::class,
         'index',
@@ -438,6 +444,9 @@ Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
         'show',
     ])->name('estimates.show');
 
+});
+
+Route::middleware(['auth', 'can:manage-organisational-data'])->group(function () {
     Route::get('/officer-subject-assignments', [
         \App\Http\Controllers\OfficerSubjectAssignmentController::class,
         'index',
@@ -453,6 +462,9 @@ Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
         'end',
     ])->name('officer-subject-assignments.end');
 
+});
+
+Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
     Route::get('/aip-activities/audit', [
         \App\Http\Controllers\AipActivityAuditController::class,
         'index',

@@ -323,3 +323,12 @@ administrator must have a province-wide assignment with no office.
 Zonal administrators cannot access financial-year routes. Reopening still
 requires a reason and records the actor and change in the audit history.
 Financial-year access does not grant user-management or master-data access.
+## Provincial organisational master-data access
+
+System administrators and provincial administrators with a province-wide role
+can access organisation and master-data routes, including officer-subject
+assignments, audit, imports and exports. Zonal and subject-director users are
+not granted this access. User management, estimate routes and AIP import
+retain their existing restrictions. The permission is checked server-side and
+shared separately for sidebar navigation. Validation in the development
+environment is pending.

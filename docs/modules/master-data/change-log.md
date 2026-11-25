@@ -62,3 +62,10 @@
 - Revalidated submitted data before saving.
 - Saved each batch and its audit events in one transaction.
 - Added import access and all-or-nothing tests.
+
+## Provincial administrator access
+
+A separate organisational-data gate covers master-data and officer-subject
+assignment routes for system administrators and province-wide provincial
+administrators. User management and other sensitive workflows retain their
+existing gates. Automated and browser verification is pending.
