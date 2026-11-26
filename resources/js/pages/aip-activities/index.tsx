@@ -9,12 +9,12 @@ type OfficeAssignment = { id: number; office_code: string; office_name: string; 
 type Funding = { fund_code: string; fund_name: string; vote_code: string; vote_description: string };
 type Activity = { id: number; activity_number: string; description: string; level: string | null; location: string | null; financial_year: { year: number }; subject: { code: string; name: string } | null; officer: { name: string } | null; office_assignments: OfficeAssignment[]; funding: Funding | null };
 type PageLink = { url: string | null; label: string; active: boolean };
-type Props = { years: Year[]; officers: Officer[]; assignments: Assignment[]; search: string; canImportAip: boolean; canManageAip: boolean; canManageAipAssignments: boolean; canCreateAip: boolean; activities: { data: Activity[]; links: PageLink[] } };
+type Props = { defaultFinancialYearId: number | null; years: Year[]; officers: Officer[]; assignments: Assignment[]; search: string; canImportAip: boolean; canManageAip: boolean; canManageAipAssignments: boolean; canCreateAip: boolean; activities: { data: Activity[]; links: PageLink[] } };
 
-export default function AipActivities({ years, officers, assignments, search, activities, canImportAip, canManageAip, canManageAipAssignments, canCreateAip }: Props) {
+export default function AipActivities({ defaultFinancialYearId, years, officers, assignments, search, activities, canImportAip, canManageAip, canManageAipAssignments, canCreateAip }: Props) {
     const [searchText, setSearchText] = useState(search);
     const { data, setData, post, processing, errors, recentlySuccessful, reset } = useForm({
-        financial_year_id: '', activity_number: '', description: '', level: '', location: '', officer_id: '', subject_id: '',
+        financial_year_id: defaultFinancialYearId === null ? '' : String(defaultFinancialYearId), activity_number: '', description: '', level: '', location: '', officer_id: '', subject_id: '',
     });
     const available = assignments.filter((assignment) => String(assignment.officer_id) === data.officer_id);
     function submit(event: FormEvent<HTMLFormElement>) {

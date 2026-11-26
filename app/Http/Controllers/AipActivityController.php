@@ -80,13 +80,16 @@ class AipActivityController extends Controller
         if (! $canCreateAip) {
             return Inertia::render('aip-activities/index', [
                 'activities' => $activities, 'search' => $search,
-                'years' => [], 'officers' => [], 'assignments' => [],
+                'years' => [], 'officers' => [], 'assignments' => [], 'defaultFinancialYearId' => null,
                 'canImportAip' => false, 'canManageAip' => false, 'canManageAipAssignments' => false, 'canCreateAip' => false,
             ]);
         }
 
         $years = DB::table('financial_years')->where('is_closed', false)
             ->orderByDesc('year')->get(['id', 'year']);
+        $currentYear = now('Asia/Colombo')->year;
+        $currentOpenYear = $years->first(fn ($year) => (int) $year->year === $currentYear);
+        $defaultFinancialYearId = $currentOpenYear ? (int) $currentOpenYear->id : null;
         $officers = DB::table('officers')->join('offices', 'offices.id', '=', 'officers.office_id')
             ->orderBy('offices.name')->orderBy('officers.name')
             ->get(['officers.id', 'officers.name', 'officers.office_id', 'officers.is_active', 'offices.name as office_name']);
@@ -98,7 +101,7 @@ class AipActivityController extends Controller
             ->get(['a.officer_id', 'a.subject_id', 's.code as subject_code', 's.name as subject_name', 's.is_active as subject_active']);
 
         return Inertia::render('aip-activities/index', [
-            ...compact('activities', 'years', 'officers', 'assignments', 'search'),
+            ...compact('activities', 'years', 'officers', 'assignments', 'search', 'defaultFinancialYearId'),
             'canImportAip' => $request->user()->can('import-aip'),
             'canManageAip' => $isMainAdmin,
             'canManageAipAssignments' => $request->user()->can('manage-aip-assignments'),
