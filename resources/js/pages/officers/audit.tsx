@@ -1,3 +1,4 @@
+import { formatSriLankaTime } from '@/lib/sri-lanka-time';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link } from '@inertiajs/react';
@@ -132,9 +133,9 @@ export default function OfficerAudit({
 
                             <p>
                                 <span className="font-semibold">
-                                    Recorded time:
+                                    Recorded time (Sri Lanka):
                                 </span>{' '}
-                                {event.created_at}
+                                {formatSriLankaTime(event.created_at)}
                             </p>
 
                             {event.old_values && (

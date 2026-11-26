@@ -12,7 +12,7 @@
 </style></head>
 <body>
 <h1>User access review</h1>
-<p>Search: {{ $search !== '' ? $search : 'All users' }} | Generated: {{ now()->format('Y-m-d H:i') }}</p>
+<p>Search: {{ $search !== '' ? $search : 'All users' }} | Generated (Sri Lanka time): {{ now()->setTimezone('Asia/Colombo')->format('Y-m-d H:i') }}</p>
 <p>Recorded roles do not grant all planned permissions. Only selected current permissions are shown.</p>
 <table><thead><tr><th>User</th><th>Status</th><th>Recorded role</th><th>Office</th><th>Linked officer</th><th>Administrator</th><th>Import flag</th><th>AIP register</th><th>AIP import</th><th>Other permissions</th></tr></thead>
 <tbody>@forelse($rows as $row)

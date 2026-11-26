@@ -38,4 +38,14 @@ class UserAccessReviewPdfTest extends TestCase
         $this->view('pdf.user-access-review', ['rows' => collect([$row]), 'search' => 'PDF'])->assertSee('&lt;Test&gt;', false)->assertSee('Allowed')->assertSee('Not allowed');
         $this->view('pdf.user-access-review', ['rows' => collect(), 'search' => 'none'])->assertSee('No users found.');
     }
+    public function test_pdf_generation_time_is_in_sri_lanka_time(): void
+    {
+        $this->travelTo(\Illuminate\Support\Carbon::parse('2026-11-26 23:45:00', 'UTC'));
+        try {
+            $this->view('pdf.user-access-review', ['rows' => collect(), 'search' => ''])
+                ->assertSee('Generated (Sri Lanka time): 2026-11-27 05:15');
+        } finally {
+            $this->travelBack();
+        }
+    }
 }

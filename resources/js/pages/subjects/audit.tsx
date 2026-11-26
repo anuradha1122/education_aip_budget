@@ -1,3 +1,4 @@
+import { formatSriLankaTime } from '@/lib/sri-lanka-time';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link } from '@inertiajs/react';
@@ -120,8 +121,8 @@ export default function SubjectAudit({ events }: Props) {
                                 </p>
 
                                 <p>
-                                    <strong>Recorded time: </strong>
-                                    {event.created_at}
+                                    <strong>Recorded time (Sri Lanka): </strong>
+                                    {formatSriLankaTime(event.created_at)}
                                 </p>
                             </div>
 
