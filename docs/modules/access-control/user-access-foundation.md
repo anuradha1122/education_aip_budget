@@ -360,7 +360,9 @@ organisational-data and AIP-assignment permissions alongside AIP register
 and import access. Inactive accounts are shown as not allowed. The report
 does not cover every system permission.
 
-Automated and browser verification is pending.
+The delegated user-management tests passed: 4 tests, 75 assertions.
+The full suite passed: 605 tests, 4,206 assertions. The TypeScript check,
+build and browser checks also passed.
 
 ## Password change policy
 
@@ -387,3 +389,18 @@ link valid. The reset controller rechecks the token after locking the user.
 PasswordResetLinkRevocationTest passed: 3 tests, 13 assertions. Password-update,
 password-reset, account-detail and session-revocation regression tests passed.
 Concurrent reset behavior still requires separate verification.
+
+## Delegated user management
+
+This section supersedes earlier descriptions that restrict user management
+to existing system administrators.
+
+System administrators and province-wide provincial administrators can manage
+non-system user accounts across offices. Zonal administrators can manage only
+subject-director accounts assigned to their own active office. The user list,
+history, access review and Excel/PDF exports are scoped to those accounts for
+zonal administrators. Zonal administrators cannot assign another office or a
+higher role, manage other zonal administrators, or grant AIP import permission.
+Existing system administrator accounts remain protected by the current account
+management restrictions; only system administrators can grant AIP import.
+These changes require automated and browser verification.

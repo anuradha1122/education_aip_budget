@@ -67,7 +67,7 @@ Route::middleware(['auth', 'can:manage-financial-years'])->group(function () {
         ->name('financial-years.update');
 });
 
-Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
+Route::middleware(['auth', 'can:manage-user-accounts'])->group(function () {
     Route::get('/user-management/access-review/export/pdf', [\App\Http\Controllers\UserAccessReviewPdfController::class, 'download'])->name('user-management.access-review.pdf');
     Route::get('/user-management/access-review/export/excel', [\App\Http\Controllers\UserAccessReviewExportController::class, 'excel'])->name('user-management.access-review.excel');
     Route::get('/user-management/access-review', [\App\Http\Controllers\UserAccessReviewController::class, 'index'])->name('user-management.access-review');
@@ -75,7 +75,7 @@ Route::middleware(['auth', 'can:manage-master-data'])->group(function () {
     Route::put('/user-management/{user}/officer', [\App\Http\Controllers\UserOfficerLinkController::class, 'update'])->name('user-management.officer.update');
     Route::delete('/user-management/{user}/officer', [\App\Http\Controllers\UserOfficerLinkController::class, 'destroy'])->name('user-management.officer.destroy');
     Route::get('/user-management/{user}/history', [\App\Http\Controllers\UserAccessHistoryController::class, 'index'])->name('user-management.history');
-    Route::patch('/user-management/{user}/import-permission', [\App\Http\Controllers\UserImportPermissionController::class, 'update'])->name('user-management.import-permission.update');
+    Route::patch('/user-management/{user}/import-permission', [\App\Http\Controllers\UserImportPermissionController::class, 'update'])->middleware('can:manage-master-data')->name('user-management.import-permission.update');
     Route::post('/user-management', [\App\Http\Controllers\UserManagementController::class, 'store'])->name('user-management.store');
     Route::put('/user-management/{user}/access', [\App\Http\Controllers\UserManagementController::class, 'updateAccess'])->name('user-management.access.update');
     Route::patch('/user-management/{user}/status', [\App\Http\Controllers\UserManagementController::class, 'updateStatus'])->name('user-management.status.update');

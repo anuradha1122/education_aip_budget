@@ -13,7 +13,7 @@ class ProvincialMasterDataAccessTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_provincial_admin_can_access_master_data_but_not_user_or_aip_administration(): void
+    public function test_provincial_admin_can_access_master_data_and_users_but_not_aip_import_without_grant(): void
     {
         $user = User::factory()->create();
         DB::table('user_access_assignments')->insert(['user_id' => $user->id, 'role' => 'provincial_admin', 'office_id' => null, 'created_at' => now(), 'updated_at' => now()]);
@@ -24,10 +24,12 @@ class ProvincialMasterDataAccessTest extends TestCase
             $this->get($url)->assertOk();
         }
         $this->post('/offices', [])->assertSessionHasErrors();
-        foreach (['/user-management', '/user-management/access-review', '/user-management/access-review/export/excel', '/aip-activities/import', '/estimates/create', '/estimate-circular-settings'] as $url) {
+        foreach (['/aip-activities/import', '/estimates/create', '/estimate-circular-settings'] as $url) {
             $this->get($url)->assertForbidden();
         }
-        $this->post('/user-management', [])->assertForbidden();
+        $this->get('/user-management')->assertOk();
+        $this->get('/user-management/access-review')->assertOk();
+        $this->post('/user-management', [])->assertSessionHasErrors('name');
         $this->post('/aip-activities/import/save', [])->assertForbidden();
     }
 
@@ -57,8 +59,10 @@ class ProvincialMasterDataAccessTest extends TestCase
         foreach (['offices.index', 'offices.store', 'offices.import.validate', 'offices.export.pdf', 'funds.index', 'votes.index', 'subjects.index', 'officers.index', 'designations.index', 'programme-types.index', 'expense-categories.index', 'officer-subject-assignments.index'] as $name) {
             $this->assertContains('can:manage-organisational-data', Route::getRoutes()->getByName($name)->gatherMiddleware(), $name);
         }
-        foreach (['user-management.index', 'user-management.store', 'estimates.create', 'aip-activities.import.index'] as $name) {
-            $this->assertContains('can:manage-master-data', Route::getRoutes()->getByName($name)->gatherMiddleware(), $name);
+        foreach (['user-management.index', 'user-management.store'] as $name) {
+            $this->assertContains('can:manage-user-accounts', Route::getRoutes()->getByName($name)->gatherMiddleware(), $name);
         }
+        $this->assertContains('can:manage-master-data', Route::getRoutes()->getByName('estimates.create')->gatherMiddleware());
+        $this->assertContains('can:import-aip', Route::getRoutes()->getByName('aip-activities.import.index')->gatherMiddleware());
     }
 }

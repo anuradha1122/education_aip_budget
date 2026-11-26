@@ -17,6 +17,7 @@ class UserOfficerLinkController extends Controller
             $target = DB::table('users')->where('id', $user->id)->lockForUpdate()->first();
             $assignment = DB::table('user_access_assignments')->where('user_id', $user->id)->lockForUpdate()->first();
             $officer = DB::table('officers')->where('id', $data['officer_id'])->lockForUpdate()->first();
+            if ($target !== null && ! (bool) $target->is_admin) abort_unless(app(\App\Services\UserManagementScope::class)->canManageTarget($request->user(), $target), 403);
             if ($target === null || (bool) $target->is_admin || $assignment === null || $assignment->role !== 'subject_director') {
                 throw ValidationException::withMessages(['officer_id' => 'Select a non-admin user with the subject director role.']);
             }
@@ -45,6 +46,7 @@ class UserOfficerLinkController extends Controller
             if ($target === null || (bool) $target->is_admin) {
                 throw ValidationException::withMessages(['officer_id' => 'Existing administrator accounts cannot be changed here.']);
             }
+            abort_unless(app(\App\Services\UserManagementScope::class)->canManageTarget($request->user(), $target), 403);
             $link = DB::table('user_officer_links')->where('user_id', $user->id)->first();
             if ($link === null) return;
             $now = now();

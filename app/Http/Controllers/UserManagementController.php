@@ -19,11 +19,14 @@ class UserManagementController extends Controller
     {
         $validated = $request->validate(['search' => ['nullable', 'string', 'max:100']]);
         $search = trim($validated['search'] ?? '');
+        $scope = app(\App\Services\UserManagementScope::class)->forUser($request->user());
+        abort_if($scope === null, 403);
         $users = DB::table('users as u')
             ->leftJoin('user_access_assignments as a', 'a.user_id', '=', 'u.id')
             ->leftJoin('offices as o', 'o.id', '=', 'a.office_id')
             ->leftJoin('user_officer_links as ul', 'ul.user_id', '=', 'u.id')
             ->leftJoin('officers as officer', 'officer.id', '=', 'ul.officer_id')
+            ->when($scope->role === 'zonal_admin', fn ($query) => $query->where('u.is_admin', false)->where('a.role', 'subject_director')->where('a.office_id', $scope->office_id))
             ->when($search !== '', fn ($query) => $query->where(function ($query) use ($search) {
                 $query->where('u.name', 'like', '%'.$search.'%')->orWhere('u.email', 'like', '%'.$search.'%');
             }))
@@ -36,9 +39,9 @@ class UserManagementController extends Controller
                 $user->can_import_aip = (bool) $user->can_import_aip;
                 return $user;
             });
-        $offices = DB::table('offices')->where('is_active', true)->orderBy('name')->get(['id', 'code', 'name']);
-        $officers = DB::table('officers')->where('is_active', true)->orderBy('name')->get(['id', 'name', 'office_id']);
-        return Inertia::render('user-management/index', compact('users', 'offices', 'officers', 'search'));
+        $offices = DB::table('offices')->where('is_active', true)->when($scope->role === 'zonal_admin', fn ($q) => $q->where('id', $scope->office_id))->orderBy('name')->get(['id', 'code', 'name']);
+        $officers = DB::table('officers')->where('is_active', true)->when($scope->role === 'zonal_admin', fn ($q) => $q->where('office_id', $scope->office_id))->orderBy('name')->get(['id', 'name', 'office_id']);
+        return Inertia::render('user-management/index', [...compact('users', 'offices', 'officers', 'search'), 'managementScope' => $scope->role, 'managementOfficeId' => $scope->office_id]);
     }
 
     public function store(Request $request, UserAccessAssignmentService $assignments): RedirectResponse
@@ -58,7 +61,7 @@ class UserManagementController extends Controller
             $assignments->assign([
                 'user_id' => $user->id, 'role' => $data['role'],
                 'office_id' => $data['office_id'] ?? null,
-            ], $request->user());
+            ], $request->user(), true);
         });
         return redirect()->route('user-management.index');
     }
@@ -69,6 +72,8 @@ class UserManagementController extends Controller
                 'role' => 'Existing administrator access cannot be changed on this page.',
             ]);
         }
+
+        abort_unless(app(\App\Services\UserManagementScope::class)->canManageTarget($request->user(), $user), 403);
 
         $data = $request->validate([
             'role' => ['required', Rule::in(['provincial_admin', 'zonal_admin', 'subject_director'])],
@@ -90,6 +95,7 @@ class UserManagementController extends Controller
             if ($target === null || (bool) $target->is_admin || (int) $target->id === (int) $request->user()->id) {
                 throw \Illuminate\Validation\ValidationException::withMessages(['is_active' => 'Administrator accounts cannot be changed here.']);
             }
+            abort_unless(app(\App\Services\UserManagementScope::class)->canManageTarget($request->user(), $target), 403);
             $active = (bool) $data['is_active'];
             if ((bool) $target->is_active === $active) {
                 return;
@@ -127,6 +133,7 @@ class UserManagementController extends Controller
                     'email' => 'Existing administrator accounts cannot be changed on this page.',
                 ]);
             }
+            abort_unless(app(\App\Services\UserManagementScope::class)->canManageTarget($request->user(), $target), 403);
             $name = trim($data['name']);
             $email = trim($data['email']);
             $passwordChanged = ! empty($data['password']);

@@ -12,6 +12,7 @@ class UserAccessHistoryController extends Controller
 {
     public function index(User $user): Response
     {
+        abort_unless(app(\App\Services\UserManagementScope::class)->canViewTarget(request()->user(), $user), 403);
         $allowed = ['name', 'email', 'role', 'office_id', 'is_active', 'password_changed', 'officer_id', 'can_import_aip'];
         $events = DB::table('user_access_assignment_audit_events as event')
             ->leftJoin('users as actor', 'actor.id', '=', 'event.actor_id')

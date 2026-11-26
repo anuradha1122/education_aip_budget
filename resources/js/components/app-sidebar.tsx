@@ -29,7 +29,7 @@ export function AppSidebar() {
         },
     ];
 
-    if (permissions?.manage_master_data) {
+    if (permissions?.manage_user_accounts) {
         mainNavItems.push({ title: 'Users', url: '/user-management', icon: Building2 });
     }
 

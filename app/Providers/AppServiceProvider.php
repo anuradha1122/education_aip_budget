@@ -26,6 +26,8 @@ class AppServiceProvider extends ServiceProvider
             return (bool) $user->is_admin;
         });
 
+        Gate::define('manage-user-accounts', fn (User $user): bool => app(\App\Services\UserManagementScope::class)->forUser($user) !== null);
+
         Gate::define('manage-financial-years', function (User $user): bool {
             if ((bool) $user->is_admin) {
                 return true;

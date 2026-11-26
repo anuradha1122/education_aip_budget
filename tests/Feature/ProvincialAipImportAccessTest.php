@@ -34,7 +34,7 @@ class ProvincialAipImportAccessTest extends TestCase
         $this->get('/aip-activities/import/template')->assertOk();
         $this->post('/aip-activities/import/validate', [])->assertSessionHasErrors('financial_year_id');
         $this->post('/aip-activities/import/save', [])->assertSessionHasErrors('financial_year_id');
-        $this->get('/user-management')->assertForbidden();
+        $this->get('/user-management')->assertOk();
         $this->actingAs($admin)->patch('/user-management/'.$user->id.'/import-permission', ['can_import_aip' => false])->assertSessionHasNoErrors();
         $this->actingAs($user->fresh())->get('/aip-activities/import')->assertForbidden();
     }

@@ -12,10 +12,11 @@ use Illuminate\Validation\ValidationException;
 class UserAccessAssignmentService
 {
     /** Records an assignment only. It does not grant route permissions. */
-    public function assign(array $input, User $actor): void
+    public function assign(array $input, User $actor, bool $allowNewAccount = false): void
     {
-        if (! (bool) $actor->is_admin) {
-            throw new AuthorizationException('Only an administrator can assign access.');
+        $scopeService = app(UserManagementScope::class);
+        if ($scopeService->forUser($actor) === null) {
+            throw new AuthorizationException('You cannot assign user access.');
         }
 
         $data = Validator::make($input, [
@@ -24,6 +25,10 @@ class UserAccessAssignmentService
             'office_id' => ['nullable', 'integer', 'min:1'],
         ])->validate();
 
+        if (! $scopeService->canAssign($actor, $data['role'], isset($data['office_id']) ? (int) $data['office_id'] : null)) {
+            throw new AuthorizationException('You cannot assign that role or office.');
+        }
+
         if ($data['role'] === 'provincial_admin' && ! empty($data['office_id'])) {
             throw ValidationException::withMessages(['office_id' => 'A provincial administrator has province-wide scope.']);
         }
@@ -31,16 +36,24 @@ class UserAccessAssignmentService
             throw ValidationException::withMessages(['office_id' => 'An office is required for this role.']);
         }
 
-        DB::transaction(function () use ($data, $actor) {
+        DB::transaction(function () use ($data, $actor, $allowNewAccount) {
             $user = DB::table('users')->where('id', $data['user_id'])->lockForUpdate()->first();
             if ($user === null) {
                 throw ValidationException::withMessages(['user_id' => 'The selected user does not exist.']);
             }
             $officeId = isset($data['office_id']) ? (int) $data['office_id'] : null;
+            if (! app(UserManagementScope::class)->canAssign($actor, $data['role'], $officeId)) {
+                throw new AuthorizationException('You cannot assign that role or office.');
+            }
             if ($officeId !== null && ! DB::table('offices')->where('id', $officeId)->where('is_active', true)->exists()) {
                 throw ValidationException::withMessages(['office_id' => 'The selected office must exist and be active.']);
             }
             $current = DB::table('user_access_assignments')->where('user_id', $user->id)->first();
+            $currentScope = app(UserManagementScope::class)->forUser($actor);
+            if ($currentScope === null || ($currentScope->role === 'zonal_admin' && $current === null && ! $allowNewAccount)
+                || (bool) $user->is_admin || ($current !== null && ! app(UserManagementScope::class)->canManageTarget($actor, $user))) {
+                throw new AuthorizationException('You cannot change this account.');
+            }
             $old = $current ? ['role' => $current->role, 'office_id' => $current->office_id === null ? null : (int) $current->office_id] : null;
             $new = ['role' => $data['role'], 'office_id' => $officeId];
             if ($old === $new) {

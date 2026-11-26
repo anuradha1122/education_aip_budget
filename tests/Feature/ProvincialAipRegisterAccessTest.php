@@ -29,7 +29,7 @@ class ProvincialAipRegisterAccessTest extends TestCase
         $this->get('/aip-activities?search=Activity%20A')->assertInertia(fn (Assert $page) => $page->has('activities.data', 1)->where('activities.data.0.office_assignments.0.office_name', 'Office A'));
         $this->get('/aip-activities/import')->assertForbidden();
         $this->post('/aip-activities', [])->assertSessionHasErrors('financial_year_id');
-        $this->get('/user-management')->assertForbidden();
+        $this->get('/user-management')->assertOk();
         DB::table('user_access_assignments')->where('user_id', $user->id)->delete();
         $this->get('/aip-activities')->assertForbidden();
     }

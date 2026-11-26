@@ -50,7 +50,7 @@ class UserManagementTest extends TestCase
         $this->assertFalse((bool) $user->is_admin);
         $this->assertDatabaseHas('user_access_assignments', ['user_id' => $user->id, 'role' => 'zonal_admin', 'office_id' => $office]);
         $this->assertDatabaseHas('user_access_assignment_audit_events', ['user_id' => $user->id, 'actor_id' => $admin->id, 'action' => 'created']);
-        $this->actingAs($user)->get('/user-management')->assertForbidden();
+        $this->actingAs($user)->get('/user-management')->assertOk();
     }
 
     public function test_invalid_office_rolls_back_account_and_audit(): void

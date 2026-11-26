@@ -22,7 +22,7 @@ class ProvincialAipCreateTest extends TestCase
         $activity = DB::table('aip_activities')->where('activity_number', '001')->first();
         $this->assertNotNull($activity);
         $this->assertDatabaseHas('aip_activity_audit_events', ['aip_activity_id' => $activity->id, 'actor_id' => $user->id, 'action' => 'created']);
-        $this->get('/user-management')->assertForbidden();
+        $this->get('/user-management')->assertOk();
         $this->get('/aip-activities/import')->assertForbidden();
         DB::table('financial_years')->where('id', $year)->update(['is_closed' => true]);
         $this->post('/aip-activities', ['financial_year_id' => $year, 'activity_number' => '002', 'description' => 'Closed'])->assertSessionHasErrors('financial_year_id');
