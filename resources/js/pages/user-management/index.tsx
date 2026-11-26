@@ -3,7 +3,7 @@ import { Head, Link, router, useForm } from '@inertiajs/react';
 import { type FormEvent, useState } from 'react';
 import { ClipboardList, History, Pencil, Plus, Unlink, UserCheck, UserRoundX } from 'lucide-react';
 
-type Officer = { id: number; name: string; office_id: number };
+type Officer = { id: number; name: string; office_id: number; is_linked: boolean | number };
 type Office = { id: number; code: string; name: string };
 type User = { id: number; name: string; email: string; is_admin: boolean | number; is_active: boolean; can_import_aip: boolean; role: string | null; office_id: number | null; officer_id: number | null; officer_name: string | null; office_name: string | null };
 type Page = { data: User[]; links: { url: string | null; label: string; active: boolean }[] };
@@ -123,7 +123,7 @@ export default function UserManagement({ offices, officers, users, search, manag
             {linking && <form onSubmit={saveOfficer} className="flex w-full flex-col gap-4 rounded border p-4">
                 <h2 className="text-lg font-semibold">Link officer: {linking.name}</h2>
                 <p className="text-sm">Select an active officer from this user’s office. The link determines which AIP activities a subject director can view.</p>
-                <label>Officer<select required value={officerLink.data.officer_id} onChange={e => officerLink.setData('officer_id', e.target.value)} className="mt-1 block w-full rounded border bg-background p-2"><option value="">Select an active officer</option>{officers.filter(o => String(o.office_id) === String(linking.office_id)).map(o => <option key={o.id} value={o.id}>{o.name} (ID: {o.id})</option>)}</select></label>
+                <label>Officer<select required value={officerLink.data.officer_id} onChange={e => officerLink.setData('officer_id', e.target.value)} className="mt-1 block w-full rounded border bg-background p-2"><option value="">Select an active officer</option>{officers.filter(o => String(o.office_id) === String(linking.office_id)).map(o => <option key={o.id} value={o.id} disabled={Number(o.is_linked) === 1 && o.id !== linking.officer_id}>{o.name}{Number(o.is_linked) === 1 && o.id !== linking.officer_id ? ' (already linked)' : ''}</option>)}</select></label>
                 {officerLink.errors.officer_id && <p className="text-sm text-red-600">{officerLink.errors.officer_id}</p>}
                 <div className="flex gap-3"><button type="submit" disabled={officerLink.processing} className="rounded bg-primary px-4 py-2 text-primary-foreground disabled:opacity-50">Save officer</button><button type="button" onClick={() => setLinking(null)} className="rounded border px-4 py-2">Cancel</button></div>
             </form>}

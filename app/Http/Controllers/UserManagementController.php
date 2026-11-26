@@ -40,7 +40,10 @@ class UserManagementController extends Controller
                 return $user;
             });
         $offices = DB::table('offices')->where('is_active', true)->when($scope->role === 'zonal_admin', fn ($q) => $q->where('id', $scope->office_id))->orderBy('name')->get(['id', 'code', 'name']);
-        $officers = DB::table('officers')->where('is_active', true)->when($scope->role === 'zonal_admin', fn ($q) => $q->where('office_id', $scope->office_id))->orderBy('name')->get(['id', 'name', 'office_id']);
+        $officers = DB::table('officers')->where('is_active', true)->when($scope->role === 'zonal_admin', fn ($q) => $q->where('office_id', $scope->office_id))
+            ->select('id', 'name', 'office_id')
+            ->selectRaw('exists (select 1 from user_officer_links where user_officer_links.officer_id = officers.id) as is_linked')
+            ->orderBy('name')->get();
         return Inertia::render('user-management/index', [...compact('users', 'offices', 'officers', 'search'), 'managementScope' => $scope->role, 'managementOfficeId' => $scope->office_id]);
     }
 
