@@ -1,8 +1,9 @@
 # M03: Users, roles and access — implementation status
 
-**Status: in progress.** The recorded roles do not yet implement every
-permission required by the project. This document reflects the checks shared
-through 20 November 2026; final acceptance and the full test suite remain open.
+**Status: in progress.** Core user management and several role permissions are
+implemented; access to future modules and final acceptance remain open. A full
+suite of 605 tests passed before the one-account-per-officer change; targeted
+regression and browser checks passed after that change.
 
 ## Current access model
 
@@ -12,13 +13,16 @@ through 20 November 2026; final acceptance and the full test suite remain open.
 - User role and office assignments are stored separately with one current
   assignment per user. Roles recorded are `provincial_admin`, `zonal_admin`
   and `subject_director`. An active office is required for the last two.
-- The recorded `provincial_admin` role alone does not yet grant provincial
-  administrator permissions. The subject-director role has a limited AIP
-  register permission described below; the role is not fully implemented.
+- A province-wide `provincial_admin` can manage eligible non-system users,
+  financial years, organisational master data and AIP activities and assignments.
+  AIP import requires a separate grant from a system administrator. The
+  subject-director role has the limited AIP register scope described below.
 - A recorded `zonal_admin` at an active office can view a read-only AIP
   register filtered to that office. Other offices' assignments and legacy
   activity-level subject/officer details are excluded from that response.
-  Import, user management and master-data routes retain their existing gates.
+  Zonal administrators can manage subject-director accounts in their own
+  active office. They cannot access financial-year or master-data management,
+  and cannot grant AIP import permission.
 
 ## User management
 
@@ -68,18 +72,18 @@ security review, full-suite run or production acceptance.
 
 - Extend subject-director personal scope beyond the AIP register as each
   relevant module is implemented; deny access by default.
-- Define and implement provincial administrator permissions independently from
-  the legacy `is_admin` flag, with a safe administrator transition.
-- Complete permission revocation, account lifecycle, password
-  reset and first-login policy, including email re-authentication.
+- Review provincial and system administrator boundaries and any future
+  administrator transition against the department’s requirements.
+- Continue reviewing permission revocation, account lifecycle and recovery
+  behavior as further modules are implemented.
 - Verify office and personal scope across every relevant action, API, report,
   export, attachment and background task as those features are implemented.
 - Test remember-me, simultaneous access changes and status changes, production
   session configuration, rate limits, recovery flows and audit retention.
 - Specify delegation and monetary approval limits with the department rather
   than assuming the workbook's draft rules.
-- Complete the planned access review report, exports, notifications and email
-  if applicable; update documentation and run full automated and browser UAT.
+- Verify access review coverage for future permissions, and implement
+  notifications and email where required; complete automated and browser UAT.
 
 ## Project plan and dependencies
 
@@ -215,70 +219,32 @@ retention and exceptional-removal procedures before production.
 
 ## Next verification step
 
-Run the complete automated test suite against the current integrated codebase,
-then investigate failures before marking M03 complete. Review the resulting
-route and permission inventory against the M03 plan, including direct URLs,
-exports and reports. User/role export and access review reporting, delegated
-approval limits and the provincial administrator transition remain open.
+Review the current route and permission inventory against the M03 plan,
+including direct URLs, exports and reports. Access review and exports exist;
+delegated monetary approval limits and access to future modules remain open.
+Complete the necessary integration and acceptance checks before marking M03
+complete.
 
-## Access review page
+## Access review and exports
 
-Administrators can review current account status, recorded role, office and
-linked officer, the existing administrator and import flags, and AIP register
-and import gate results. Inactive accounts show AIP access as not allowed.
-Role assignments alone do not grant all planned permissions; this page does not
-represent a complete permission matrix. It is read-only, searches names and
-emails, and paginates. It requires the existing administrator gate. Excel and
-PDF access review outputs and additional permission coverage remain open.
-Automated tests and browser checks for this page are pending.
+The access review shows account status, role, office, linked officer, flags and
+selected current permissions. Search supports name, email, office name and
+office code. Excel and PDF exports apply the same search across all matching
+pages and exclude credentials. The report does not cover every system
+permission. Zonal administrators see only subject-director accounts in their
+own active office; provincial and system administrators have broader scope as
+described under delegated user management.
 
-The developer reported a full-suite run of 561 tests and 3,462 assertions
-passing before the access review page was added.
-
-## Access review Excel export
-
-The administrator-only access review page offers an Excel download. It uses
-the currently applied name/email search and includes matching users across all
-pages. It reports account status, recorded assignments, selected flags and
-current AIP register/import gate results. All cells are written as text.
-Passwords, hashes and remember tokens are excluded. This is not a complete
-permission report; PDF and broader permission coverage remain open. Feature
-tests and a browser download check are pending.
-
-The developer reported that the access review feature and related access
-tests, TypeScript check, build and browser check passed.
-
-## Access review PDF
-
-The administrator-only access review PDF download uses the applied name or
-email search and covers all matching pages. The landscape report shows account
-status, recorded assignments, administrator and import flags, and selected AIP
-register and import gate results. It excludes credentials and states that it
-is not a complete permission matrix. The Excel export passed its feature tests,
-TypeScript check, build and browser check. PDF automated and browser checks are
-pending; larger report layout and performance require acceptance testing.
-
-## Access review office search
-
-The access review searches user name, email, office name and office code. The
-Excel and PDF downloads use the same applied search for all matching pages.
-Automated and browser verification for office searching is pending.
-
-## Access review scope consistency
-
-The developer reported that office-name and office-code search passed the
-feature test and browser check. A new regression test checks that subject
-director register access changes in the review when an officer or office is
-inactive and checks the inactive-office result in Excel and PDF data. This new
-test is pending verification in the development environment.
+Access-review, office-search, export, PDF and director-consistency tests passed,
+and the developer reported successful browser and download checks. Larger
+report layout and performance still require acceptance testing.
 
 ## Email change confirmation
 
 Self-service email changes require the account's current password, checked
 against the locked user record before saving. A wrong or missing password
 blocks the entire update. Name-only changes do not require a password. Existing
-email-change audit and other-session revocation still apply. Automated tests and
-browser verification are pending. Review rate limits before production.
+email-change audit and other-session revocation still apply. Automated tests and browser verification passed. Review production rate-limit configuration.
 
 The developer reported the director access-review consistency and subject
 director access tests passed after the prior update.
@@ -288,8 +254,7 @@ director access tests passed after the prior update.
 Five incorrect or missing current-password submissions for an email change
 limit further email-change attempts for that account for 60 seconds. Name-only
 updates remain available. Attempts are counted after a rejected transaction;
-a successful email change clears the counter. Automated and browser checks
-are pending. Production must use a shared, working cache for rate limits;
+a successful email change clears the counter. Automated and browser checks passed. Production must use a shared, working cache for rate limits;
 verify concurrency and cache behavior on the deployment infrastructure.
 
 The developer reported that email confirmation, profile audit, profile update,
@@ -297,51 +262,20 @@ account-status tests, the TypeScript check, build and browser check passed.
 
 ## AIP import permission administration
 
-Existing administrators can grant or revoke the AIP import flag for existing
-administrator accounts. An administrator cannot grant the flag to themselves;
-another administrator must grant it. The flag cannot be granted to an
-inactive account or a non-administrator. Changes are recorded with actor and
-old/new values in user history; an unchanged flag creates no audit event.
-Import routes retain their existing gates and check access on every request.
-Automated and browser checks are pending. The existing administrator flag still
-grants broad master-data access; a separate provincial administrator role and
-more granular management permissions remain open.
+System administrators can grant or revoke AIP import permission for eligible
+system administrators and province-wide provincial administrators. Import is
+denied by default and requires a separate grant. Changes are audited. A role
+change that makes a provincial administrator ineligible revokes the grant;
+changing back does not automatically restore it. The provincial import feature
+and related regression tests, build and browser check passed.
 
-The developer reported that email-change attempt limiting and profile
-regression tests and a browser check passed. Production cache and concurrency
-verification remain open.
+## Provincial AIP access
 
-System administrators and province-wide provincial administrators may
-import AIP activities when separately granted import permission by a system
-administrator. Import is denied by default. Grants and revocations are
-audited. Changing a provincial administrator to another role revokes the
-grant; changing back does not restore it automatically.
-
-The provincial import feature test passed: 4 tests, 51 assertions.
-Related permission, assignment, unlink and access-review tests, the
-TypeScript check, build and browser test also passed.
-
-## Provincial AIP register access
-
-A user recorded as provincial administrator with no office assignment may
-view the AIP register across offices. This is read-only and excludes legacy
-activity-level subject and officer details for non-system administrators.
-Import, activity creation and user-management permissions remain controlled
-by their existing gates; the recorded provincial role does not grant them.
-Removal of the role denies province-wide register access on the next request.
-Automated and browser verification are pending; wider provincial administrator
-permissions still require definition and implementation.
-
-## Provincial AIP activity creation
-
-The requirements draft assigns AIP record creation to the Provincial Budget
-Administrator. A user with a valid province-wide provincial-admin assignment
-can create an AIP activity using the existing validation, financial-year lock
-and audit service. The dedicated route permission does not grant master-data,
-user-management, audit-history or AIP-import access. Office assignment and
-funding remain separate workflows. Automated and browser checks are pending.
-The developer previously reported the provincial register and associated
-regression tests and browser check passed.
+A provincial administrator with a valid province-wide assignment can view the
+AIP register across offices, create activities and manage office and funding
+assignments. Closed-year validation and audit rules apply. AIP import remains
+separately controlled. The relevant access, creation and assignment tests and
+browser checks passed.
 
 ## Financial-year access
 
@@ -351,7 +285,9 @@ administrator must have a province-wide assignment with no office.
 
 Zonal administrators cannot access financial-year routes. Reopening still
 requires a reason and records the actor and change in the audit history.
-Financial-year access does not grant user-management or master-data access.
+Financial-year access is controlled separately from user-management and
+master-data permissions; qualifying provincial administrators also have those
+permissions under the separate rules documented below.
 
 ## Provincial organisational master-data access
 
@@ -360,8 +296,7 @@ can access organisation and master-data routes, including officer-subject
 assignments, audit, imports and exports. Zonal and subject-director users are
 not granted this access. User management, estimate routes and AIP import
 retain their existing restrictions. The permission is checked server-side and
-shared separately for sidebar navigation. Validation in the development
-environment is pending.
+shared separately for sidebar navigation. Automated and browser checks passed in the development environment.
 
 ## Provincial AIP office and funding access
 
@@ -370,7 +305,7 @@ activities to offices and associate votes and funds. Closed-year validation
 and audit events apply. Zonal administrators and subject directors cannot
 use these management routes. AIP import remains separately restricted.
 
-Automated and browser verification is pending.
+Automated tests and browser verification passed.
 
 ## Access review permission coverage
 
@@ -422,4 +357,6 @@ zonal administrators. Zonal administrators cannot assign another office or a
 higher role, manage other zonal administrators, or grant AIP import permission.
 Existing system administrator accounts remain protected by the current account
 management restrictions; only system administrators can grant AIP import.
-These changes require automated and browser verification.
+The delegated user-management tests and browser checks passed. After the
+one-account-per-officer change, delegated management passed 4 tests with 75
+assertions, and officer unlink passed 2 tests with 17 assertions.
