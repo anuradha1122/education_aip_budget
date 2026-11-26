@@ -112,8 +112,27 @@ recorded role and office also match. Automated tests and browser verification pa
 The link can become stale if a user changes role or office, or an officer is
 transferred or deactivated. Every future personal-access decision must recheck
 role, office and officer status against current data and deny on mismatch.
-Removal and officer transfer guards are described below. Review the policy for
-one-officer-to-multiple-user links and existing stale links before production.
+Removal and officer transfer guards are described below. Existing stale links
+still require review before production.
+
+### One account per officer
+
+Each subject-director account can link to one officer, and an officer can be
+linked to at most one user account. This rule also applies when the linked
+account is inactive. To link that officer to another account, an authorised
+administrator must first remove the existing link. The database enforces the
+limit, and the Users page marks officers already linked to another account.
+The migration checks for duplicate links and stops without changing them if any
+are found.
+
+The officer–subject assignment is separate from the user–officer link: an
+officer may be assigned to multiple subjects in the same office. Multiple
+subject assignments do not by themselves grant access to additional AIP
+activities; the register remains scoped to the officer’s matching office-level
+activity links described below.
+
+The migration, officer-link and multiple-subject tests, TypeScript check,
+production build and browser check passed in the development environment.
 
 ## Subject-director AIP register
 
