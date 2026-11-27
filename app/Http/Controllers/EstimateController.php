@@ -18,7 +18,16 @@ class EstimateController extends Controller
     {
         $paragraph = DB::table('estimate_circular_settings')->where('id', 1)->value('rule_paragraph');
 
+        $assignments = DB::table('aip_activity_offices as ao')
+            ->join('aip_activities as a', 'a.id', '=', 'ao.aip_activity_id')
+            ->join('financial_years as y', 'y.id', '=', 'a.financial_year_id')
+            ->join('offices as o', 'o.id', '=', 'ao.office_id')
+            ->where('y.is_closed', false)->where('o.is_active', true)
+            ->orderByDesc('y.year')->orderBy('a.activity_number')->orderBy('o.name')
+            ->get(['ao.id', 'y.year', 'a.activity_number', 'a.description', 'o.code as office_code', 'o.name as office_name']);
+
         return Inertia::render('estimates/create', [
+            'assignments' => $assignments,
             'defaultCircularParagraph' => $paragraph ?? '',
         ]);
     }

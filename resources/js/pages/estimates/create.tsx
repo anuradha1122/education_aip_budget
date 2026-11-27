@@ -2,6 +2,7 @@ import AppLayout from '@/layouts/app-layout';
 import { Head, router } from '@inertiajs/react';
 import { type FormEvent, useState } from 'react';
 
+type Assignment = { id: number; year: number; activity_number: string; description: string; office_code: string; office_name: string };
 type Row = { description: string; rate: string; units: string; people: string };
 const emptyRow = (): Row => ({ description: '', rate: '', units: '1', people: '1' });
 const money = (cents: bigint) => `${cents / 100n}.${(cents % 100n).toString().padStart(2, '0')}`;
@@ -15,7 +16,8 @@ function parseRow(row: Row): { rate: bigint; units: bigint; people: bigint } | n
     return rate <= 100000000000n && units <= 1000000n && people <= 1000000n ? { rate, units, people } : null;
 }
 
-export default function CreateEstimate({ defaultCircularParagraph }: { defaultCircularParagraph: string }) {
+export default function CreateEstimate({ defaultCircularParagraph, assignments }: { defaultCircularParagraph: string; assignments: Assignment[] }) {
+    const [assignmentId, setAssignmentId] = useState('');
     const [title, setTitle] = useState('');
     const [paragraph, setParagraph] = useState(defaultCircularParagraph);
     const [rows, setRows] = useState<Row[]>([emptyRow()]);
@@ -35,7 +37,7 @@ export default function CreateEstimate({ defaultCircularParagraph }: { defaultCi
         }
         setErrors({});
         router.post('/estimates', {
-            title, circular_paragraph: paragraph,
+            title, circular_paragraph: paragraph, aip_activity_office_id: assignmentId,
             items: rows.map((row, i) => ({ description: row.description, rate_in_cents: Number(parsed[i]!.rate), units: Number(parsed[i]!.units), people: Number(parsed[i]!.people) })),
         }, { onStart: () => setSaving(true), onFinish: () => setSaving(false), onError: (e) => setErrors(e) });
     }
@@ -44,6 +46,8 @@ export default function CreateEstimate({ defaultCircularParagraph }: { defaultCi
         <div className="flex flex-col gap-6 p-4 md:p-6">
             <div><h1 className="text-2xl font-semibold">Create estimate</h1><p className="mt-2 text-sm text-muted-foreground">Enter the expense details for this estimate.</p></div>
             <form onSubmit={submit} className="flex flex-col gap-5">
+                <label className="block">AIP activity and responsible office<select className="mt-1 block w-full rounded border bg-background p-2" required value={assignmentId} onChange={(e) => setAssignmentId(e.target.value)}><option value="">Select an activity and office</option>{assignments.map((item) => <option key={item.id} value={item.id}>{item.year} — {item.activity_number} — {item.description} — {item.office_code} — {item.office_name}</option>)}</select></label>
+                {assignments.length === 0 && <p>No active office assignments in open financial years are available.</p>}
                 <label className="block">Programme title<input className="mt-1 block w-full rounded border bg-background p-2" value={title} maxLength={255} required onChange={(e) => setTitle(e.target.value)} /></label>
                 {errors.title && <p className="text-red-600">{errors.title}</p>}
                 {rows.map((row, i) => <fieldset key={i} className="grid gap-3 rounded border p-4 md:grid-cols-4">
@@ -66,7 +70,7 @@ export default function CreateEstimate({ defaultCircularParagraph }: { defaultCi
                 <p className="text-sm text-muted-foreground">For a fixed amount, enter the amount as the rate and use 1 for days / hours and people.</p>
                 <label>Circular paragraph<textarea className="mt-1 block w-full rounded border bg-background p-2" rows={5} maxLength={10000} value={paragraph} onChange={(e) => setParagraph(e.target.value)} /></label>
                 {Object.entries(errors).map(([key, value]) => key !== 'title' && <p key={key} className="text-sm text-red-600">{value}</p>)}
-                <div><button className="rounded bg-primary px-4 py-2 text-primary-foreground disabled:opacity-50" disabled={saving} type="submit">{saving ? 'Saving...' : 'Save estimate'}</button></div>
+                <div><button className="rounded bg-primary px-4 py-2 text-primary-foreground disabled:opacity-50" disabled={saving || assignments.length === 0} type="submit">{saving ? 'Saving...' : 'Save estimate'}</button></div>
             </form>
         </div>
     </AppLayout>;

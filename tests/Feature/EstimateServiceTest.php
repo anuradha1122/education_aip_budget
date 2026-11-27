@@ -13,9 +13,19 @@ class EstimateServiceTest extends TestCase
 {
     use RefreshDatabase;
 
+    private function assignment(): int
+    {
+        $year = DB::table('financial_years')->insertGetId(['year' => 2027, 'start_date' => '2027-01-01', 'end_date' => '2027-12-31', 'is_closed' => false, 'created_at' => now(), 'updated_at' => now()]);
+        $office = DB::table('offices')->insertGetId(['code' => 'ZEO-RAT', 'name' => 'Rathnapura', 'type' => 'zonal', 'is_active' => true, 'created_at' => now(), 'updated_at' => now()]);
+        $activity = DB::table('aip_activities')->insertGetId(['financial_year_id' => $year, 'activity_number' => '1', 'description' => 'Example', 'created_at' => now(), 'updated_at' => now()]);
+        return DB::table('aip_activity_offices')->insertGetId(['aip_activity_id' => $activity, 'office_id' => $office, 'created_at' => now(), 'updated_at' => now()]);
+    }
+
+
     public function test_it_saves_an_estimate_and_calculates_the_total(): void
     {
         $result = app(EstimateService::class)->create([
+            'aip_activity_office_id' => $this->assignment(),
             'title' => 'පුහුණු වැඩසටහන',
             'circular_paragraph' => "උදාහරණය\nදෙවන පේළිය",
             'items' => [
@@ -60,6 +70,7 @@ class EstimateServiceTest extends TestCase
     {
         try {
             app(EstimateService::class)->create([
+                'aip_activity_office_id' => $this->assignment(),
                 'title' => 'Example',
                 'items' => [['description' => 'Example', 'rate_in_cents' => 100000000000, 'units' => 1000000, 'people' => 1000000]],
             ]);
